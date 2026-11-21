@@ -13,7 +13,8 @@ const nav = [
   { href: "/admin/content", label: "Website content", icon: Store },
   { href: "/admin/orders", label: "Orders", icon: ClipboardList },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/admin/settings", label: "Settings", icon: Settings },\n  { href: "/admin/users", label: "Admin users", icon: Users }
+  { href: "/admin/settings", label: "Settings", icon: Settings },
+  { href: "/admin/users", label: "Admin users", icon: Users }
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
