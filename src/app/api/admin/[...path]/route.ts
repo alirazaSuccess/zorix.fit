@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 type RouteContext = { params: Promise<{ path: string[] }> };
 
 async function proxyRequest(request: NextRequest, context: RouteContext) {
+  const origin = request.headers.get("origin");
+  if (!["GET", "HEAD", "OPTIONS"].includes(request.method) && origin && origin !== request.nextUrl.origin) return NextResponse.json({ error: "Cross-origin request blocked." }, { status: 403 });
   const base = process.env.COMMERCE_API_URL?.replace(/\/$/, "");
   if (!base) return NextResponse.json({ error: "Admin API is not configured. Add COMMERCE_API_URL to the Vercel project environment variables." }, { status: 503 });
   const { path } = await context.params;
