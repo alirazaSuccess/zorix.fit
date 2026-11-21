@@ -24,6 +24,12 @@ async function getLiveCollections(){
  try{const r=await fetch(base+"/v1/collections",{cache:"no-store"});if(!r.ok)return [];const j=await r.json();return j.data||[];}catch{return [];}
 }
 
+async function getLiveProducts(){
+ const base=process.env.COMMERCE_API_URL?.replace(/\/$/,"");
+ if(!base)return [];
+ try{const r=await fetch(base+"/v1/products?limit=8",{cache:"no-store"});if(!r.ok)return [];const j=await r.json();return j.data||[];}catch{return [];}
+}
+
 async function getHomepageSections(){
  const base=process.env.COMMERCE_API_URL?.replace(/\/$/,"");
  if(!base)return [];
@@ -31,8 +37,8 @@ async function getHomepageSections(){
 }
 
 export default async function HomePage() {
-  const [cmsSections,liveCollections]=await Promise.all([getHomepageSections(),getLiveCollections()]);
-  const displayCategories=liveCollections.length?liveCollections.map((item:any,i:number)=>({title:item.title,subtitle:item.description||"Explore the collection.",slug:item.slug,image:item.image_key?.startsWith("https://")?item.image_key:categories[i%categories.length].image,tone:"warm"})):categories;
+  const [cmsSections,liveCollections,liveProducts]=await Promise.all([getHomepageSections(),getLiveCollections(),getLiveProducts()]);
+  const displayEdits=liveProducts.length?liveProducts.slice(0,4).map((p:any)=>({name:p.title,detail:p.product_type||"ZORIX ESSENTIALS",price:"Rs. "+Math.round((p.price_paisa||0)/100).toLocaleString("en-PK"),label:p.featured?"FEATURED":"NEW EDIT",image:p.image_url||"",slug:p.slug})):edits;\n  const displayCategories=liveCollections.length?liveCollections.map((item:any,i:number)=>({title:item.title,subtitle:item.description||"Explore the collection.",slug:item.slug,image:item.image_key?.startsWith("https://")?item.image_key:categories[i%categories.length].image,tone:"warm"})):categories;
   const heroSection=cmsSections.find((section:any)=>section.section_type==="hero");
   const bannerSections=cmsSections.filter((section:any)=>section.section_type==="banner");
   const heroImage=heroSection?.settings?.image_url||"https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=2200&q=90";
@@ -58,7 +64,7 @@ export default async function HomePage() {
 
     <section className="bg-[#f0e9e4] py-16 md:py-24">
       <div className="container-shell"><div className="mb-10 flex items-end justify-between"><div><p className="eyebrow mb-3 text-[#ad6963]">THE ZORIX SELECTION</p><h2 className="display-title text-4xl md:text-6xl">A little something lovely.</h2></div><Link href="/shop" className="hidden items-center gap-2 text-[9px] font-bold uppercase tracking-widest sm:flex">View all <ArrowRight size={14}/></Link></div>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-4 md:gap-6">{edits.map(p=><article key={p.name}><Link href="/shop" className="image-zoom group relative mb-4 block aspect-[3/4] overflow-hidden bg-[#e5d9d2]"><img src={p.image} alt={p.name} className="h-full w-full object-cover"/><span className="absolute left-3 top-3 bg-[#fbf8f5] px-2 py-1.5 text-[8px] font-bold tracking-[.13em]">{p.label}</span><span className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#fbf8f5] opacity-0 transition group-hover:opacity-100"><ArrowUpRight size={17}/></span></Link><p className="mb-1 text-[9px] uppercase tracking-[.14em] text-[#9b827b]">{p.detail}</p><h3 className="text-xs font-semibold md:text-sm">{p.name}</h3><p className="mt-2 text-xs text-[#76635e]">{p.price}</p></article>)}</div>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-4 md:gap-6">{displayEdits.map((p:any)=><article key={p.name}><Link href={p.slug?"/products/"+p.slug:"/shop"} className="image-zoom group relative mb-4 block aspect-[3/4] overflow-hidden bg-[#e5d9d2]"><img src={p.image} alt={p.name} className="h-full w-full object-cover"/><span className="absolute left-3 top-3 bg-[#fbf8f5] px-2 py-1.5 text-[8px] font-bold tracking-[.13em]">{p.label}</span><span className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#fbf8f5] opacity-0 transition group-hover:opacity-100"><ArrowUpRight size={17}/></span></Link><p className="mb-1 text-[9px] uppercase tracking-[.14em] text-[#9b827b]">{p.detail}</p><h3 className="text-xs font-semibold md:text-sm">{p.name}</h3><p className="mt-2 text-xs text-[#76635e]">{p.price}</p></article>)}</div>
         <p className="mt-8 text-[9px] uppercase tracking-wider text-[#927e77]">Editorial preview · Product names, prices and images are temporary and will be editable from your store dashboard.</p>
       </div>
     </section>
