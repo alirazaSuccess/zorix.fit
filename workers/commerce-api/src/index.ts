@@ -54,7 +54,7 @@ function cookieValue(header: string | undefined, name: string) {
 function sessionCookie(value: string, maxAge: number) {
   return `${SESSION_COOKIE}=${value}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`;
 }
-async function currentAdmin(c: Parameters<Parameters<typeof app.get>[1]>[0]): Promise<AdminRow | null> {
+async function currentAdmin(c: { req: { header: (name: string) => string | undefined }; env: Bindings }): Promise<AdminRow | null> {
   const token = cookieValue(c.req.header("Cookie"), SESSION_COOKIE);
   if (!token) return null;
   const tokenHash = bytesToBase64(await sha256(token));
