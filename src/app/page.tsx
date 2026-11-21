@@ -18,17 +18,29 @@ const edits = [
   { name: "Move With You Set", detail: "Activewear · Sport collection", price: "Rs. 2,990", label: "NEW SEASON", image: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=850&q=88" }
 ];
 
-export default function HomePage() {
+async function getHomepageSections(){
+ const base=process.env.COMMERCE_API_URL?.replace(/\/$/,"");
+ if(!base)return [];
+ try{const r=await fetch(base+"/v1/content/homepage",{cache:"no-store"});if(!r.ok)return [];const j=await r.json();return j.data||[];}catch{return [];}
+}
+
+export default async function HomePage() {
+  const cmsSections=await getHomepageSections();
+  const heroSection=cmsSections.find((section:any)=>section.section_type==="hero");
+  const bannerSections=cmsSections.filter((section:any)=>section.section_type==="banner");
+  const heroImage=heroSection?.settings?.image_url||"https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=2200&q=90";
   return <main>
     <SiteHeader/>
     <section className="hero-editorial relative min-h-[590px] overflow-hidden md:min-h-[700px]">
-      <div className="absolute inset-0 bg-cover bg-[center_32%]" style={{backgroundImage:"url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=2200&q=90')"}}/>
+      <div className="absolute inset-0 bg-cover bg-[center_32%]" style={{backgroundImage:"url('"+heroImage+"')"}}/>
       <div className="absolute inset-0 bg-gradient-to-r from-[#211817]/65 via-[#211817]/25 to-transparent"/>
       <div className="container-shell relative flex min-h-[590px] items-center py-20 md:min-h-[700px]">
-        <div className="max-w-[560px] text-white"><p className="eyebrow mb-6 text-[#f0c9bf]">THE ART OF FEELING GOOD</p><h1 className="display-title text-6xl leading-[.96] md:text-[92px]">Comfort looks<br/>good on <em>you.</em></h1><p className="mt-7 max-w-[370px] text-sm leading-7 text-white/85">Beautifully considered lingerie, sleepwear and active essentials for every version of you.</p><Link href="/shop" className="mt-9 inline-flex items-center gap-8 bg-[#fbf6f1] px-7 py-4 text-[9px] font-bold uppercase tracking-[.2em] text-[#302625] transition hover:bg-[#b56d66] hover:text-white">Explore the collection <ArrowUpRight size={15}/></Link></div>
+        <div className="max-w-[560px] text-white"><p className="eyebrow mb-6 text-[#f0c9bf]">THE ART OF FEELING GOOD</p><h1 className="display-title text-6xl leading-[.96] md:text-[92px]">{heroSection?.title||<>Comfort looks<br/>good on <em>you.</em></>}</h1><p className="mt-7 max-w-[370px] text-sm leading-7 text-white/85">{heroSection?.body||"Beautifully considered lingerie, sleepwear and active essentials for every version of you."}</p><Link href={heroSection?.settings?.cta_url||"/shop"} className="mt-9 inline-flex items-center gap-8 bg-[#fbf6f1] px-7 py-4 text-[9px] font-bold uppercase tracking-[.2em] text-[#302625] transition hover:bg-[#b56d66] hover:text-white">{heroSection?.settings?.cta_label||"Explore the collection"} <ArrowUpRight size={15}/></Link></div>
       </div>
       <div className="absolute bottom-8 right-8 hidden text-[9px] uppercase tracking-[.2em] text-white/80 md:block">Discover your everyday · 01 / 05</div>
     </section>
+
+    {bannerSections.map((section:any)=><section key={section.id} className="relative my-8 overflow-hidden bg-[#302625] py-16 text-white md:py-24">{section.settings?.image_url&&<div className="absolute inset-0 bg-cover bg-center opacity-40" style={{backgroundImage:"url('"+section.settings.image_url+"')"}}/>}<div className="container-shell relative"><p className="eyebrow mb-3 text-[#d8a49b]">{section.subtitle}</p><h2 className="display-title max-w-3xl text-4xl md:text-6xl">{section.title}</h2><p className="mt-4 max-w-xl text-sm leading-7 text-white/75">{section.body}</p>{section.settings?.cta_label&&<Link href={section.settings?.cta_url||"/shop"} className="mt-7 inline-flex bg-[#fbf6f1] px-6 py-3 text-[9px] font-bold uppercase tracking-widest text-[#302625]">{section.settings.cta_label}</Link>}</div></section>)}
 
     <section className="container-shell py-16 md:py-24">
       <div className="mb-9 flex items-end justify-between"><div><p className="eyebrow mb-3 text-[#ad6963]">FIND YOUR FEEL-GOOD</p><h2 className="display-title text-4xl md:text-6xl">The collections.</h2></div><Link href="/shop" className="hidden items-center gap-2 text-[9px] font-bold uppercase tracking-widest sm:flex">Shop everything <ArrowRight size={14}/></Link></div>
