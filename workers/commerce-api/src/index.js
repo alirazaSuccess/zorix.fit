@@ -247,10 +247,21 @@ async function route(request, env) {
     return json({ok:true,message:"Password updated. Other sessions were signed out."});
   }
   if(path==="/v1/admin/analytics"&&request.method==="GET"){
-    const days=Math.min(365,Math.max(1,Number(url.searchParams.get("days")||30)));
-    const events=await env.DB.prepare("SELECT event_name,COUNT(*) AS total FROM analytics_events WHERE created_at>=datetime('now',?) GROUP BY event_name ORDER BY event_name").bind("-"+days+" days").all();
-    const orders=await env.DB.prepare("SELECT COUNT(*) AS total,COALESCE(SUM(total_paisa),0) AS revenue FROM orders WHERE created_at>=datetime('now',?) AND status NOT IN ('cancelled','returned')").bind("-"+days+" days").first();
-    return json({days,events:events.results,orders:orders?.total||0,revenuePaisa:orders?.revenue||0});
+    const days=Math.min(365,Math.max(1,Number(url.searchParams.get("days")||30))),from=url.searchParams.get("from"),to=url.searchParams.get("to");
+    const validDate=v=>typeof v==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(v);
+    const useRange=validDate(from)&&validDate(to),where=useRange?"created_at>=? AND created_at<?":"created_at>=datetime('now',?)",binds=useRange?[from+" 00:00:00",to+" 23:59:59"]:["-"+days+" days"];
+    const events=await env.DB.prepare("SELECT event_name,COUNT(*) AS total FROM analytics_events WHERE "+where+" GROUP BY event_name ORDER BY event_name").bind(...binds).all();
+    const orders=await env.DB.prepare("SELECT COUNT(*) AS total,COALESCE(SUM(total_paisa),0) AS revenue FROM orders WHERE "+where+" AND status NOT IN ('cancelled','returned')").bind(...binds).first();
+    const counts=Object.fromEntries(events.results.map(x=>[x.event_name,Number(x.total)]));
+    const funnel=["page_view","product_view","add_to_cart","checkout_start","completed_order"].map(name=>({event:name,total:counts[name]||0}));
+    return json({days,from:useRange?from:null,to:useRange?to:null,events:events.results,funnel,orders:orders?.total||0,revenuePaisa:orders?.revenue||0,conversionRate:counts.page_view?Number(((counts.completed_order||0)/counts.page_view*100).toFixed(2)):0});
+  }
+  if(path==="/v1/analytics/events"&&request.method==="POST"){
+    const d=await body(request),allowed=["page_view","product_view","add_to_cart","checkout_start","completed_order"];
+    if(!allowed.includes(d.eventName)||typeof d.path!=="string")return json({error:"Invalid analytics event."},400);
+    const anonymous=typeof d.anonymousId==="string"?d.anonymousId.slice(0,64):null,session=typeof d.sessionId==="string"?d.sessionId.slice(0,64):null;
+    await env.DB.prepare("INSERT INTO analytics_events (id,event_name,anonymous_id,session_id,path,product_id,metadata_json) VALUES (?,?,?,?,?,?,?)").bind(crypto.randomUUID(),d.eventName,anonymous,session,d.path.slice(0,500),typeof d.productId==="string"?d.productId:null,JSON.stringify(d.metadata&&typeof d.metadata==="object"?d.metadata:{}).slice(0,2000)).run();
+    return json({ok:true},201);
   }
   if(path==="/v1/admin/content"&&request.method==="GET"){
     const [sections,pages]=await Promise.all([env.DB.prepare("SELECT * FROM homepage_sections ORDER BY sort_order").all(),env.DB.prepare("SELECT * FROM content_pages ORDER BY title").all()]);
