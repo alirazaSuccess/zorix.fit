@@ -12,7 +12,7 @@
 
 ### Vercel project environment variables
 Set the following for Preview (and Production when ready):
-- `COMMERCE_API_URL`: the deployed Cloudflare Worker origin, e.g. `https://zorix-commerce-api.<your-workers-subdomain>.workers.dev`. Do not include a trailing slash.
+- `COMMERCE_API_URL`: the deployed Cloudflare Worker origin: `https://zorix-commerce-api.alirazamahar304.workers.dev`. Do not include a trailing slash. This value has been added to the Vercel Preview environment for branch `feat/platform-foundation`.
 
 This value is server-only; do not use a `NEXT_PUBLIC_` prefix.
 
@@ -22,7 +22,7 @@ Configure:
 - Variable `ENVIRONMENT=production`.
 - Secret `ADMIN_SETUP_TOKEN`: generate a cryptographically random token with at least 32 bytes of entropy and set it as a Worker secret. Never commit it to GitHub or put it in a public URL.
 
-The `store_setup` table was added to the connected D1 database for the one-time initial-owner gate. The migration file is also committed for repeatable deployments.
+The `store_setup` table was added to the connected D1 database for the one-time initial-owner gate. The migration file is also committed for repeatable deployments. The Worker script `zorix-commerce-api` is deployed with the D1 binding and setup-token secret.
 
 ## First owner account
 1. Deploy the commerce Worker with the D1 binding and `ADMIN_SETUP_TOKEN` secret.
