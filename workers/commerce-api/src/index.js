@@ -52,6 +52,7 @@ async function route(request, env) {
     return json({ setupRequired: (count?.total || 0) === 0 && Boolean(env.ADMIN_SETUP_TOKEN) });
   }
   if (path === "/v1/admin/setup" && request.method === "POST") {
+    try {
     if (!env.ADMIN_SETUP_TOKEN) return json({ error: "Admin setup is not configured on the server." }, 503);
     const data = await body(request);
     if (typeof data.setupToken !== "string" || data.setupToken.length < 32) return json({ error: "Invalid setup credentials." }, 401);
@@ -68,6 +69,10 @@ async function route(request, env) {
     if (inserted.meta.changes !== 1) return json({ error: "Initial setup has already been completed." }, 409);
     await env.DB.prepare("UPDATE store_setup SET admin_created=1, completed_at=CURRENT_TIMESTAMP WHERE id=1 AND admin_created=0").run();
     return json({ ok: true, message: "Owner account created. You can now sign in." }, 201);
+    } catch (error) {
+      console.error("ZORIX owner setup failed:", error);
+      return json({ error: "Owner setup failed.", diagnostic: String(error?.message || error).slice(0, 240) }, 500);
+    }
   }
   if (path === "/v1/admin/login" && request.method === "POST") {
     const data = await body(request);
