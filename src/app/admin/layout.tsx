@@ -1,0 +1,48 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { BarChart3, Boxes, ClipboardList, FolderOpen, Image, LayoutDashboard, LogOut, Settings, ShoppingBag, Store } from "lucide-react";
+import { useState } from "react";
+
+const nav = [
+  { href: "/admin", label: "Overview", icon: LayoutDashboard },
+  { href: "/admin/products", label: "Products", icon: ShoppingBag },
+  { href: "/admin/collections", label: "Collections", icon: Boxes },
+  { href: "/admin/media", label: "Media library", icon: Image },
+  { href: "/admin/content", label: "Website content", icon: Store },
+  { href: "/admin/orders", label: "Orders", icon: ClipboardList },
+  { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/admin/settings", label: "Settings", icon: Settings }
+];
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  async function signOut() {
+    setBusy(true);
+    await fetch("/api/admin/logout", { method: "POST" });
+    router.push("/admin/login");
+    router.refresh();
+  }
+  if (pathname === "/admin/login" || pathname === "/admin/setup") return <>{children}</>;
+  return <div className="admin-shell">
+    <aside className="admin-sidebar">
+      <Link href="/" className="admin-brand mb-10 block px-3 text-2xl font-extrabold tracking-[.2em]">ZORIX<span className="text-[#d69b91]">.</span><span className="mt-1 block text-[8px] font-medium tracking-[.24em] text-white/45">STORE ADMIN</span></Link>
+      <p className="admin-nav-caption mb-3 px-3 text-[9px] font-bold uppercase tracking-[.2em] text-white/35">Workspace</p>
+      <nav className="grid gap-1">{nav.map(item => { const Icon = item.icon; const active = item.href === "/admin" ? pathname === item.href : pathname.startsWith(item.href); return <Link key={item.href} href={item.href} title={item.label} className={`admin-nav-link ${active ? "active" : ""}`}><Icon size={17}/><span className="admin-nav-label">{item.label}</span></Link>; })}</nav>
+      <div className="mt-auto grid gap-2">
+        <Link href="/" className="admin-nav-link"><Store size={17}/><span className="admin-nav-label">View storefront</span></Link>
+        <button onClick={signOut} disabled={busy} className="admin-nav-link text-left"><LogOut size={17}/><span className="admin-nav-label">{busy ? "Signing out…" : "Sign out"}</span></button>
+      </div>
+    </aside>
+    <div className="admin-main">
+      <header className="flex h-[76px] items-center justify-between border-b border-[#eae2dc] bg-white px-5 sm:px-8">
+        <div><p className="text-[9px] font-bold uppercase tracking-[.18em] text-[#a16d65]">ZORIX MANAGEMENT</p><p className="mt-1 text-sm font-semibold">Store dashboard</p></div>
+        <div className="flex items-center gap-3"><span className="hidden text-[10px] text-[#887a75] sm:inline">Pakistan · PKR</span><span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f0e4df] text-xs font-bold">Z</span></div>
+      </header>
+      <main className="p-5 sm:p-8">{children}</main>
+    </div>
+  </div>;
+}
