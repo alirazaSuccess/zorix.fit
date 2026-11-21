@@ -51,6 +51,11 @@ async function route(request, env) {
     const count = await env.DB.prepare("SELECT COUNT(*) AS total FROM admins").first();
     return json({ setupRequired: (count?.total || 0) === 0 && Boolean(env.ADMIN_SETUP_TOKEN) });
   }
+  const publicAdminPaths = new Set(["/v1/admin/setup-status", "/v1/admin/setup", "/v1/admin/login", "/v1/admin/logout"]);
+  if (path.startsWith("/v1/admin/") && !publicAdminPaths.has(path)) {
+    const sessionAdmin = await adminFor(request, env);
+    if (!sessionAdmin) return json({ error: "Unauthorised" }, 401);
+  }
   if (path === "/v1/admin/setup" && request.method === "POST") {
     try {
     if (!env.ADMIN_SETUP_TOKEN) return json({ error: "Admin setup is not configured on the server." }, 503);
