@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Menu, Search, ShoppingBag, Instagram, Heart, ChevronDown } from "lucide-react";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 
 const categories = [
   { title: "Night Suits", subtitle: "Soft nights. Beautiful mornings.", slug: "night-suits", image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1000&q=88", tone: "warm" },
@@ -16,41 +18,9 @@ const edits = [
   { name: "Move With You Set", detail: "Activewear · Sport collection", price: "Rs. 2,990", label: "NEW SEASON", image: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=850&q=88" }
 ];
 
-function Header() {
-  return <>
-    <div className="bg-[#302625] px-4 py-2.5 text-center text-[9px] font-medium uppercase tracking-[.22em] text-[#f8eee9] sm:text-[10px]">A little luxury in your everyday · Discover the ZORIX edit</div>
-    <header className="sticky top-0 z-40 border-b border-[#e9dfd9] bg-[#fbf8f5]/95 backdrop-blur-xl">
-      <div className="container-shell flex h-[76px] items-center justify-between">
-        <button className="md:hidden" aria-label="Open navigation"><Menu size={21}/></button>
-        <nav className="hidden items-center gap-7 text-[10px] font-semibold uppercase tracking-[.16em] md:flex">
-          <Link href="/shop" className="transition hover:text-[#a65b55]">Shop all</Link>
-          <Link href="/collections/night-suits" className="transition hover:text-[#a65b55]">Night suits</Link>
-          <Link href="/collections/bras" className="transition hover:text-[#a65b55]">Bras</Link>
-          <Link href="/collections/underwear" className="transition hover:text-[#a65b55]">Underwear</Link>
-          <Link href="/collections/sport" className="transition hover:text-[#a65b55]">Sport</Link>
-        </nav>
-        <Link href="/" className="absolute left-1/2 -translate-x-1/2 text-[27px] font-extrabold tracking-[.22em]">ZORIX<span className="text-[#b56d66]">.</span></Link>
-        <div className="flex items-center gap-4 sm:gap-5"><button aria-label="Search"><Search size={19} strokeWidth={1.5}/></button><Link href="/account" aria-label="Account" className="hidden sm:block"><Heart size={19} strokeWidth={1.5}/></Link><Link href="/cart" aria-label="Shopping bag" className="relative"><ShoppingBag size={19} strokeWidth={1.5}/><span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#b56d66] text-[9px] text-white">0</span></Link></div>
-      </div>
-    </header>
-  </>;
-}
-
-function Footer() {
-  return <footer className="bg-[#302625] text-[#f8eee9]">
-    <div className="container-shell grid gap-12 py-14 md:grid-cols-[1.4fr_1fr_1fr_1.2fr] md:py-20">
-      <div><Link href="/" className="text-3xl font-extrabold tracking-[.2em]">ZORIX<span className="text-[#d69b91]">.</span></Link><p className="mt-5 max-w-xs text-xs leading-7 text-white/60">Thoughtful intimates and everyday essentials, designed to make you feel comfortable in your own skin.</p><div className="mt-6 flex gap-4"><Instagram size={17}/></div></div>
-      <div><h3 className="footer-heading">Explore</h3><div className="footer-links"><Link href="/shop">Shop all</Link><Link href="/collections/night-suits">Night suits</Link><Link href="/collections/bras">Bras</Link><Link href="/collections/underwear">Underwear</Link><Link href="/collections/sport">Sport collection</Link></div></div>
-      <div><h3 className="footer-heading">Customer care</h3><div className="footer-links"><Link href="/contact">Contact us</Link><Link href="/faq">FAQs</Link><Link href="/shipping-returns">Shipping & returns</Link><Link href="/privacy-policy">Privacy policy</Link></div></div>
-      <div><h3 className="footer-heading">A note from ZORIX</h3><p className="mt-4 text-xs leading-7 text-white/60">A softer everyday starts here. Join our list for new arrivals, thoughtful edits and little updates.</p><form className="mt-5 flex border-b border-white/35 pb-3"><input type="email" placeholder="Your email address" className="min-w-0 flex-1 bg-transparent text-xs outline-none placeholder:text-white/45"/><button className="text-[9px] font-bold uppercase tracking-widest">Join <ArrowRight className="ml-2 inline" size={13}/></button></form></div>
-    </div>
-    <div className="border-t border-white/10"><div className="container-shell flex flex-col gap-3 py-5 text-[9px] uppercase tracking-[.14em] text-white/45 sm:flex-row sm:items-center sm:justify-between"><span>© {new Date().getFullYear()} ZORIX. All rights reserved.</span><span>Made for your everyday · Pakistan</span></div></div>
-  </footer>;
-}
-
 export default function HomePage() {
   return <main>
-    <Header/>
+    <SiteHeader/>
     <section className="hero-editorial relative min-h-[590px] overflow-hidden md:min-h-[700px]">
       <div className="absolute inset-0 bg-cover bg-[center_32%]" style={{backgroundImage:"url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=2200&q=90')"}}/>
       <div className="absolute inset-0 bg-gradient-to-r from-[#211817]/65 via-[#211817]/25 to-transparent"/>
@@ -80,6 +50,6 @@ export default function HomePage() {
     </section>
 
     <section className="bg-[#302625] px-6 py-16 text-center text-white md:py-24"><p className="eyebrow mb-4 text-[#d8a49b]">A LITTLE LOVE IN YOUR INBOX</p><h2 className="display-title text-4xl md:text-6xl">Stay close to comfort.</h2><p className="mx-auto mt-4 max-w-md text-xs leading-7 text-white/65">Be first to know about new collections, special edits and everything happening at ZORIX.</p><form className="mx-auto mt-8 flex max-w-md border-b border-white/40 pb-3"><input type="email" placeholder="Your email address" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-white/50"/><button type="button" className="text-[9px] font-bold uppercase tracking-widest">Sign up <ArrowRight className="ml-2 inline" size={14}/></button></form></section>
-    <Footer/>
+    <SiteFooter/>
   </main>;
 }
