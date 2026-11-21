@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { BarChart3, Boxes, ClipboardList, FolderOpen, Image, LayoutDashboard, LogOut, Settings, ShoppingBag, Store } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const nav = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
@@ -20,13 +20,27 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
+  const isPublicAuthPage = pathname === "/admin/login" || pathname === "/admin/setup";
+  useEffect(() => {
+    if (isPublicAuthPage) { setAuthChecked(true); return; }
+    let active = true;
+    fetch("/api/admin/me", { cache: "no-store" }).then(response => {
+      if (!active) return;
+      if (response.ok) setAuthenticated(true);
+      else router.replace("/admin/login");
+    }).catch(() => { if (active) router.replace("/admin/login"); }).finally(() => { if (active) setAuthChecked(true); });
+    return () => { active = false; };
+  }, [pathname, router, isPublicAuthPage]);
   async function signOut() {
     setBusy(true);
     await fetch("/api/admin/logout", { method: "POST" });
     router.push("/admin/login");
     router.refresh();
   }
-  if (pathname === "/admin/login" || pathname === "/admin/setup") return <>{children}</>;
+  if (isPublicAuthPage) return <>{children}</>;
+  if (!authChecked || !authenticated) return <div className="flex min-h-screen items-center justify-center bg-[#f7f4f1] text-xs text-[#887a75]">Verifying secure admin session…</div>;
   return <div className="admin-shell">
     <aside className="admin-sidebar">
       <Link href="/" className="admin-brand mb-10 block px-3 text-2xl font-extrabold tracking-[.2em]">ZORIX<span className="text-[#d69b91]">.</span><span className="mt-1 block text-[8px] font-medium tracking-[.24em] text-white/45">STORE ADMIN</span></Link>
