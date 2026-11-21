@@ -1,6 +1,6 @@
 const SESSION_COOKIE = "zorix_admin_session";
 const SESSION_DAYS = 7;
-const ITERATIONS = 310000;
+const ITERATIONS = 100000;
 const enc = new TextEncoder();
 const json = (data, status = 200, headers = {}) => new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers } });
 const b64 = (bytes) => {
@@ -23,7 +23,7 @@ const hashPassword = async (password) => {
 const verifyPassword = async (password, stored) => {
   const [scheme, count, salt, expected] = (stored || "").split("$");
   const iterations = Number(count);
-  if (scheme !== "pbkdf2" || !salt || !expected || !Number.isInteger(iterations) || iterations < 100000 || iterations > 1000000) return false;
+  if (scheme !== "pbkdf2" || !salt || !expected || !Number.isInteger(iterations) || iterations < 100000 || iterations > 100000) return false;
   const key = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveBits"]);
   const actual = new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt: fromB64(salt), iterations }, key, 256));
   const wanted = fromB64(expected);
