@@ -215,6 +215,18 @@ async function route(request, env) {
     if(!validEmail(email)||password.length<12||password.length>128||!role)return json({error:"Enter a valid email, password of at least 12 characters and an allowed role."},400);
     try{const id=crypto.randomUUID();await env.DB.prepare("INSERT INTO admins (id,email,password_hash,role,is_active) VALUES (?,?,?,?,1)").bind(id,email,await hashPassword(password),role).run();await env.DB.prepare("INSERT INTO admin_audit_logs (id,admin_id,action,entity_type,entity_id) VALUES (?,?,'create','admin',?)").bind(crypto.randomUUID(),admin.id,id).run();return json({ok:true,id},201);}catch{return json({error:"That admin email is already registered."},409);}
   }
+  const userPasswordMatch=path.match(/^\/v1\/admin\/users\/([^/]+)\/password$/);
+  if(userPasswordMatch&&request.method==="POST"){
+    if(admin.role!=="owner")return json({error:"Only the store owner can reset staff passwords."},403);
+    const d=await body(request),target=await env.DB.prepare("SELECT id,role FROM admins WHERE id=?").bind(userPasswordMatch[1]).first();
+    if(!target)return json({error:"Admin user not found."},404);
+    if(target.role==="owner")return json({error:"Owner password must be changed from the owner's own account."},400);
+    if(typeof d.newPassword!=="string"||d.newPassword.length<12||d.newPassword.length>128)return json({error:"Temporary password must be 12–128 characters."},400);
+    await env.DB.prepare("UPDATE admins SET password_hash=?,updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(await hashPassword(d.newPassword),target.id).run();
+    await env.DB.prepare("DELETE FROM admin_sessions WHERE admin_id=?").bind(target.id).run();
+    await env.DB.prepare("INSERT INTO admin_audit_logs (id,admin_id,action,entity_type,entity_id) VALUES (?,?,'password_reset','admin',?)").bind(crypto.randomUUID(),admin.id,target.id).run();
+    return json({ok:true,message:"Password reset. The staff member must sign in again."});
+  }
   const userMatch=path.match(/^\/v1\/admin\/users\/([^/]+)$/);
   if(userMatch&&request.method==="PATCH"){
     if(admin.role!=="owner")return json({error:"Only the store owner can manage admin users."},403);
