@@ -170,7 +170,7 @@ async function route(request, env) {
   const collectionMatch=path.match(/^\/v1\/admin\/collections\/([^/]+)$/);
   if(collectionMatch&&request.method==="PATCH"){
     const data=await body(request), id=collectionMatch[1];
-    const allowed={title:"title",slug:"slug",description:"description",isActive:"is_active",sortOrder:"sort_order"};
+    const allowed={title:"title",slug:"slug",description:"description",isActive:"is_active",sortOrder:"sort_order",imageKey:"image_key",seoTitle:"seo_title",seoDescription:"seo_description"};
     const sets=[],values=[];
     for(const [key,col] of Object.entries(allowed))if(Object.prototype.hasOwnProperty.call(data,key)){sets.push(col+"=?");values.push(key==="isActive"?(data[key]?1:0):data[key]);}
     if(!sets.length)return json({error:"No fields supplied."},400);
