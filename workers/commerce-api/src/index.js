@@ -373,7 +373,7 @@ async function route(request, env) {
   if (path === "/v1/products" && request.method === "GET") {
     const page = Math.max(1,Number(url.searchParams.get("page")||1));
     const limit = Math.min(48,Math.max(1,Number(url.searchParams.get("limit")||24)));
-    const result = await env.DB.prepare("SELECT id,title,slug,description,price_paisa,compare_at_price_paisa,featured FROM products WHERE status='active' ORDER BY featured DESC,created_at DESC LIMIT ? OFFSET ?").bind(limit,(page-1)*limit).all();
+    const result = await env.DB.prepare("SELECT id,title,slug,description,price_paisa,compare_at_price_paisa,featured,(SELECT delivery_url FROM product_images pi WHERE pi.product_id=products.id ORDER BY pi.sort_order LIMIT 1) AS image_url FROM products WHERE status='active' ORDER BY featured DESC,created_at DESC LIMIT ? OFFSET ?").bind(limit,(page-1)*limit).all();
     return json({data:result.results,pagination:{page,limit,hasMore:result.results.length===limit}});
   }
   if (path === "/v1/collections" && request.method === "GET") {
