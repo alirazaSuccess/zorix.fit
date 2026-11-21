@@ -9,9 +9,6 @@ database_name = "zorix-commerce"
 database_id = "61cde8c1-d713-474d-8954-1fb03463634f"
 migrations_dir = "migrations"
 
-[[r2_buckets]]
-binding = "MEDIA"
-bucket_name = "zorix-media"
 
 [vars]
 ENVIRONMENT = "development"
