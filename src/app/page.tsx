@@ -38,7 +38,8 @@ async function getHomepageSections(){
 
 export default async function HomePage() {
   const [cmsSections,liveCollections,liveProducts]=await Promise.all([getHomepageSections(),getLiveCollections(),getLiveProducts()]);
-  const displayEdits=liveProducts.length?liveProducts.slice(0,4).map((p:any)=>({name:p.title,detail:p.product_type||"ZORIX ESSENTIALS",price:"Rs. "+Math.round((p.price_paisa||0)/100).toLocaleString("en-PK"),label:p.featured?"FEATURED":"NEW EDIT",image:p.image_url||"",slug:p.slug})):edits;\n  const displayCategories=liveCollections.length?liveCollections.map((item:any,i:number)=>({title:item.title,subtitle:item.description||"Explore the collection.",slug:item.slug,image:item.image_key?.startsWith("https://")?item.image_key:categories[i%categories.length].image,tone:"warm"})):categories;
+  const displayEdits=liveProducts.length?liveProducts.slice(0,4).map((p:any)=>({name:p.title,detail:p.product_type||"ZORIX ESSENTIALS",price:"Rs. "+Math.round((p.price_paisa||0)/100).toLocaleString("en-PK"),label:p.featured?"FEATURED":"NEW EDIT",image:p.image_url||"",slug:p.slug})):edits;
+  const displayCategories=liveCollections.length?liveCollections.map((item:any,i:number)=>({title:item.title,subtitle:item.description||"Explore the collection.",slug:item.slug,image:item.image_key?.startsWith("https://")?item.image_key:categories[i%categories.length].image,tone:"warm"})):categories;
   const heroSection=cmsSections.find((section:any)=>section.section_type==="hero");
   const bannerSections=cmsSections.filter((section:any)=>section.section_type==="banner");
   const heroImage=heroSection?.settings?.image_url||"https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=2200&q=90";
