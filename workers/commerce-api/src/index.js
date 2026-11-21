@@ -297,8 +297,10 @@ async function route(request, env) {
   if(mediaMatch&&request.method==="PATCH"){
     const d=await body(request),urlValue=typeof d.url==="string"?d.url:"";
     if(!urlValue.startsWith("https://res.cloudinary.com/"))return json({error:"Invalid Cloudinary delivery URL."},400);
-    const r=await env.DB.prepare("UPDATE media_assets SET delivery_url=?,file_name=?,content_type=?,size_bytes=?,alt_text=? WHERE id=?").bind(urlValue,String(d.fileName||"image").slice(0,255),String(d.contentType||"image/jpeg"),Math.max(1,Number(d.sizeBytes)||1),String(d.altText||"").slice(0,500),mediaMatch[1]).run();
-    return r.meta.changes?json({ok:true}):json({error:"Media asset not found."},404);
+    const asset=await env.DB.prepare("SELECT storage_key FROM media_assets WHERE id=?").bind(mediaMatch[1]).first();if(!asset)return json({error:"Media asset not found."},404);
+    await env.DB.prepare("UPDATE media_assets SET delivery_url=?,file_name=?,content_type=?,size_bytes=?,alt_text=? WHERE id=?").bind(urlValue,String(d.fileName||"image").slice(0,255),String(d.contentType||"image/jpeg"),Math.max(1,Number(d.sizeBytes)||1),String(d.altText||"").slice(0,500),mediaMatch[1]).run();
+    await env.DB.prepare("UPDATE product_images SET delivery_url=? WHERE storage_key=?").bind(urlValue,asset.storage_key).run();
+    return json({ok:true});
   }
   if(mediaMatch&&request.method==="DELETE"){
     const asset=await env.DB.prepare("SELECT storage_key FROM media_assets WHERE id=?").bind(mediaMatch[1]).first();
@@ -312,6 +314,8 @@ async function route(request, env) {
     const response=await fetch("https://api.cloudinary.com/v1_1/"+env.CLOUDINARY_CLOUD_NAME+"/image/destroy",{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded"},body:form});
     const result=await response.json().catch(()=>({}));
     if(!response.ok||result.result!=="ok"&&result.result!=="not found")return json({error:"Cloudinary could not delete this image."},502);
+    await env.DB.prepare("DELETE FROM product_images WHERE storage_key=?").bind(asset.storage_key).run();
+    await env.DB.prepare("UPDATE collections SET image_key=NULL,updated_at=CURRENT_TIMESTAMP WHERE image_key=?").bind(asset.storage_key).run();
     await env.DB.prepare("DELETE FROM media_assets WHERE id=?").bind(mediaMatch[1]).run();
     return json({ok:true});
   }
