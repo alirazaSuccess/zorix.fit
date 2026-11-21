@@ -130,11 +130,12 @@ async function route(request, env) {
     } catch (error) { return json({ error: String(error?.message || "Could not create product").includes("UNIQUE") ? "Product slug or SKU already exists." : "Could not create product." },400); }
   }
   const productMatch = path.match(/^\/v1\/admin\/products\/([^/]+)$/);
+  if (productMatch && request.method === "GET") { const product=await env.DB.prepare("SELECT * FROM products WHERE id=?").bind(productMatch[1]).first(); return product?json({product}):json({error:"Product not found."},404); }
   if (productMatch && request.method === "PATCH") {
     const data = await body(request);
     const id = productMatch[1];
     const allowed = ["title","slug","description","status","product_type","price_paisa","compare_at_price_paisa","sku","track_inventory","inventory_quantity","featured"];
-    const columns = { title:"title",slug:"slug",description:"description",status:"status",productType:"product_type",pricePaisa:"price_paisa",compareAtPricePaisa:"compare_at_price_paisa",sku:"sku",trackInventory:"track_inventory",inventoryQuantity:"inventory_quantity",featured:"featured" };
+    const columns = { title:"title",slug:"slug",description:"description",status:"status",productType:"product_type",vendor:"vendor",pricePaisa:"price_paisa",compareAtPricePaisa:"compare_at_price_paisa",sku:"sku",trackInventory:"track_inventory",inventoryQuantity:"inventory_quantity",featured:"featured",seoTitle:"seo_title",seoDescription:"seo_description" };
     const sets = [], values = [];
     for (const [key,column] of Object.entries(columns)) if (Object.prototype.hasOwnProperty.call(data,key)) { sets.push(column+"=?"); let value=data[key]; if (["trackInventory","featured"].includes(key)) value=value?1:0; if (["pricePaisa","compareAtPricePaisa","inventoryQuantity"].includes(key)) value=Number(value); values.push(value); }
     if (!sets.length) return json({error:"No editable fields supplied."},400);
