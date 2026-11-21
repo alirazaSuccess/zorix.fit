@@ -356,6 +356,20 @@ async function route(request, env) {
     let content={};try{content=JSON.parse(page.content_json||"{}")}catch{}
     return json({page:{...page,content}});
   }
+  const publicProductMatch=path.match(/^\/v1\/products\/([a-z0-9-]+)$/);
+  if(publicProductMatch&&request.method==="GET"){
+    const product=await env.DB.prepare("SELECT id,title,slug,description,product_type,price_paisa,compare_at_price_paisa,sku,track_inventory,inventory_quantity,featured,seo_title,seo_description FROM products WHERE slug=? AND status='active'").bind(publicProductMatch[1]).first();
+    if(!product)return json({error:"Product not found."},404);
+    const [images,variants]=await Promise.all([env.DB.prepare("SELECT id,delivery_url,alt_text,sort_order FROM product_images WHERE product_id=? ORDER BY sort_order").bind(product.id).all(),env.DB.prepare("SELECT id,title,sku,size,color,price_paisa,inventory_quantity,sort_order FROM product_variants WHERE product_id=? ORDER BY sort_order,title").bind(product.id).all()]);
+    return json({product,images:images.results,variants:variants.results});
+  }
+  const publicCollectionMatch=path.match(/^\/v1\/collections\/([a-z0-9-]+)$/);
+  if(publicCollectionMatch&&request.method==="GET"){
+    const collection=await env.DB.prepare("SELECT id,title,slug,description,image_key,seo_title,seo_description FROM collections WHERE slug=? AND is_active=1").bind(publicCollectionMatch[1]).first();
+    if(!collection)return json({error:"Collection not found."},404);
+    const products=await env.DB.prepare("SELECT p.id,p.title,p.slug,p.description,p.price_paisa,p.compare_at_price_paisa,p.product_type,(SELECT delivery_url FROM product_images pi WHERE pi.product_id=p.id ORDER BY pi.sort_order LIMIT 1) AS image_url FROM collection_products cp JOIN products p ON p.id=cp.product_id WHERE cp.collection_id=? AND p.status='active' ORDER BY cp.sort_order,p.title").bind(collection.id).all();
+    return json({collection,products:products.results});
+  }
   if (path === "/v1/products" && request.method === "GET") {
     const page = Math.max(1,Number(url.searchParams.get("page")||1));
     const limit = Math.min(48,Math.max(1,Number(url.searchParams.get("limit")||24)));
