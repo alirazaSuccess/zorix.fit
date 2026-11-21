@@ -54,6 +54,11 @@ async function route(request, env) {
   const publicAdminPaths = new Set(["/v1/admin/setup-status", "/v1/admin/setup", "/v1/admin/login", "/v1/admin/logout"]);
   const admin = path.startsWith("/v1/admin/") && !publicAdminPaths.has(path) ? await adminFor(request, env) : null;
   if (path.startsWith("/v1/admin/") && !publicAdminPaths.has(path) && !admin) return json({ error: "Unauthorised" }, 401);
+  if(admin){
+    const selfService=["/v1/admin/me","/v1/admin/logout","/v1/admin/sessions","/v1/admin/password"].includes(path);
+    if(admin.role==="fulfillment"&&!selfService&&!path.startsWith("/v1/admin/orders"))return json({error:"Your fulfillment role cannot access this area."},403);
+    if(admin.role==="editor"&&(path.startsWith("/v1/admin/orders")||path.startsWith("/v1/admin/settings")||path.startsWith("/v1/admin/users")))return json({error:"Your editor role cannot access this area."},403);
+  }
   if (path === "/v1/admin/setup" && request.method === "POST") {
     try {
     if (!env.ADMIN_SETUP_TOKEN) return json({ error: "Admin setup is not configured on the server." }, 503);
