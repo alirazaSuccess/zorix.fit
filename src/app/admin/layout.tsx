@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BarChart3, Boxes, ClipboardList, FolderOpen, Image, LayoutDashboard, LogOut, Settings, ShoppingBag, Store } from "lucide-react";
+import { BarChart3, Boxes, ClipboardList, FolderOpen, Image, LayoutDashboard, LogOut, Settings, ShoppingBag, Store, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const nav = [
@@ -13,7 +13,7 @@ const nav = [
   { href: "/admin/content", label: "Website content", icon: Store },
   { href: "/admin/orders", label: "Orders", icon: ClipboardList },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/admin/settings", label: "Settings", icon: Settings }
+  { href: "/admin/settings", label: "Settings", icon: Settings },\n  { href: "/admin/users", label: "Admin users", icon: Users }
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
