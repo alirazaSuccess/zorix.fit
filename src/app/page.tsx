@@ -1,74 +1,85 @@
-import { ArrowDown, ArrowRight, ArrowUpRight, Instagram, Menu, Search, ShoppingBag, UserRound } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, ArrowUpRight, Menu, Search, ShoppingBag, Instagram, Heart, ChevronDown } from "lucide-react";
 
 const categories = [
-  { name: "For Her", detail: "Everyday confidence", image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1000&q=85" },
-  { name: "For Him", detail: "Made for your everyday", image: "https://images.unsplash.com/photo-1516257984-b1b4d707412e?auto=format&fit=crop&w=1000&q=85" },
-  { name: "Daily Essentials", detail: "The pieces you reach for", image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1000&q=85" }
+  { title: "Night Suits", subtitle: "Soft nights. Beautiful mornings.", slug: "night-suits", image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1000&q=88", tone: "warm" },
+  { title: "Bras", subtitle: "Everyday support, elevated.", slug: "bras", image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=1000&q=88", tone: "rose" },
+  { title: "Underwear", subtitle: "The essentials you'll live in.", slug: "underwear", image: "https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?auto=format&fit=crop&w=1000&q=88", tone: "sand" },
+  { title: "Sport Bras", subtitle: "Made to move with you.", slug: "sport-bras", image: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1000&q=88", tone: "dark" },
+  { title: "Sport Underwear", subtitle: "Performance meets comfort.", slug: "sport-underwear", image: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?auto=format&fit=crop&w=1000&q=88", tone: "dark" }
 ];
 
-const products = [
-  { name: "The Everyday Edit", type: "Essential collection", price: "From Rs. 1,490", image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=900&q=85", tag: "BESTSELLER" },
-  { name: "Soft Form", type: "Comfort series", price: "From Rs. 1,250", image: "https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?auto=format&fit=crop&w=900&q=85", tag: "NEW ARRIVAL" },
-  { name: "Off-Duty Comfort", type: "Relaxed essentials", price: "From Rs. 1,790", image: "https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?auto=format&fit=crop&w=900&q=85", tag: "CURATED FOR YOU" }
+const edits = [
+  { name: "The Soft Touch Night Suit", detail: "Nightwear · Relaxed fit", price: "Rs. 2,490", label: "BESTSELLER", image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=850&q=88" },
+  { name: "Everyday Comfort Bra", detail: "Bras · All-day comfort", price: "Rs. 1,690", label: "EVERYDAY EDIT", image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=850&q=88" },
+  { name: "Second Skin Brief", detail: "Underwear · Soft stretch", price: "Rs. 890", label: "CUSTOMER FAVOURITE", image: "https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?auto=format&fit=crop&w=850&q=88" },
+  { name: "Move With You Set", detail: "Activewear · Sport collection", price: "Rs. 2,990", label: "NEW SEASON", image: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=850&q=88" }
 ];
 
 function Header() {
-  return (
-    <>
-      <div className="bg-[#24211f] px-4 py-2 text-center text-[10px] tracking-[.18em] text-white">A LITTLE MORE COMFORT IN EVERY ORDER · SHOP THE EDIT</div>
-      <header className="sticky top-0 z-30 border-b border-[#e7e1d9] bg-[#f7f5f1]/95 backdrop-blur">
-        <div className="container-shell flex h-[76px] items-center justify-between">
-          <nav className="hidden items-center gap-8 text-[11px] font-semibold uppercase tracking-[.13em] md:flex">
-            <a href="#shop" className="hover:text-[#a65c45]">Shop</a><a href="#collections" className="hover:text-[#a65c45]">Collections</a><a href="#story" className="hover:text-[#a65c45]">Our story</a>
-          </nav>
-          <button aria-label="Open menu" className="md:hidden"><Menu size={21}/></button>
-          <a href="#" className="absolute left-1/2 -translate-x-1/2 text-[27px] font-black tracking-[.2em]">ZORIX<span className="text-[#a65c45]">.</span></a>
-          <div className="flex items-center gap-5"><button aria-label="Search"><Search size={19} strokeWidth={1.5}/></button><button aria-label="Account" className="hidden sm:block"><UserRound size={19} strokeWidth={1.5}/></button><button aria-label="Shopping bag" className="relative"><ShoppingBag size={19} strokeWidth={1.5}/><span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#a65c45] text-[9px] text-white">0</span></button></div>
-        </div>
-      </header>
-    </>
-  );
+  return <>
+    <div className="bg-[#302625] px-4 py-2.5 text-center text-[9px] font-medium uppercase tracking-[.22em] text-[#f8eee9] sm:text-[10px]">A little luxury in your everyday · Discover the ZORIX edit</div>
+    <header className="sticky top-0 z-40 border-b border-[#e9dfd9] bg-[#fbf8f5]/95 backdrop-blur-xl">
+      <div className="container-shell flex h-[76px] items-center justify-between">
+        <button className="md:hidden" aria-label="Open navigation"><Menu size={21}/></button>
+        <nav className="hidden items-center gap-7 text-[10px] font-semibold uppercase tracking-[.16em] md:flex">
+          <Link href="/shop" className="transition hover:text-[#a65b55]">Shop all</Link>
+          <Link href="/collections/night-suits" className="transition hover:text-[#a65b55]">Night suits</Link>
+          <Link href="/collections/bras" className="transition hover:text-[#a65b55]">Bras</Link>
+          <Link href="/collections/underwear" className="transition hover:text-[#a65b55]">Underwear</Link>
+          <Link href="/collections/sport" className="transition hover:text-[#a65b55]">Sport</Link>
+        </nav>
+        <Link href="/" className="absolute left-1/2 -translate-x-1/2 text-[27px] font-extrabold tracking-[.22em]">ZORIX<span className="text-[#b56d66]">.</span></Link>
+        <div className="flex items-center gap-4 sm:gap-5"><button aria-label="Search"><Search size={19} strokeWidth={1.5}/></button><Link href="/account" aria-label="Account" className="hidden sm:block"><Heart size={19} strokeWidth={1.5}/></Link><Link href="/cart" aria-label="Shopping bag" className="relative"><ShoppingBag size={19} strokeWidth={1.5}/><span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#b56d66] text-[9px] text-white">0</span></Link></div>
+      </div>
+    </header>
+  </>;
+}
+
+function Footer() {
+  return <footer className="bg-[#302625] text-[#f8eee9]">
+    <div className="container-shell grid gap-12 py-14 md:grid-cols-[1.4fr_1fr_1fr_1.2fr] md:py-20">
+      <div><Link href="/" className="text-3xl font-extrabold tracking-[.2em]">ZORIX<span className="text-[#d69b91]">.</span></Link><p className="mt-5 max-w-xs text-xs leading-7 text-white/60">Thoughtful intimates and everyday essentials, designed to make you feel comfortable in your own skin.</p><div className="mt-6 flex gap-4"><Instagram size={17}/></div></div>
+      <div><h3 className="footer-heading">Explore</h3><div className="footer-links"><Link href="/shop">Shop all</Link><Link href="/collections/night-suits">Night suits</Link><Link href="/collections/bras">Bras</Link><Link href="/collections/underwear">Underwear</Link><Link href="/collections/sport">Sport collection</Link></div></div>
+      <div><h3 className="footer-heading">Customer care</h3><div className="footer-links"><Link href="/contact">Contact us</Link><Link href="/faq">FAQs</Link><Link href="/shipping-returns">Shipping & returns</Link><Link href="/privacy-policy">Privacy policy</Link></div></div>
+      <div><h3 className="footer-heading">A note from ZORIX</h3><p className="mt-4 text-xs leading-7 text-white/60">A softer everyday starts here. Join our list for new arrivals, thoughtful edits and little updates.</p><form className="mt-5 flex border-b border-white/35 pb-3"><input type="email" placeholder="Your email address" className="min-w-0 flex-1 bg-transparent text-xs outline-none placeholder:text-white/45"/><button className="text-[9px] font-bold uppercase tracking-widest">Join <ArrowRight className="ml-2 inline" size={13}/></button></form></div>
+    </div>
+    <div className="border-t border-white/10"><div className="container-shell flex flex-col gap-3 py-5 text-[9px] uppercase tracking-[.14em] text-white/45 sm:flex-row sm:items-center sm:justify-between"><span>© {new Date().getFullYear()} ZORIX. All rights reserved.</span><span>Made for your everyday · Pakistan</span></div></div>
+  </footer>;
 }
 
 export default function HomePage() {
-  return (
-    <main>
-      <Header />
-      <section className="relative min-h-[620px] overflow-hidden bg-[#d8d0c6] md:min-h-[690px]">
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,18,17,.58)_0%,rgba(20,18,17,.2)_58%,rgba(20,18,17,.03)_100%)]"/>
-        <div className="absolute inset-0 bg-cover bg-[center_35%]" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=2200&q=90')" }}/>
-        <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/15 to-transparent"/>
-        <div className="container-shell relative flex min-h-[620px] items-center py-20 md:min-h-[690px]">
-          <div className="max-w-[580px] text-white">
-            <p className="eyebrow mb-6">THE NEW EVERYDAY</p>
-            <h1 className="display-title text-6xl leading-[.98] md:text-[88px]">Feel good.<br/>Be <em>you.</em></h1>
-            <p className="mt-7 max-w-[360px] text-sm leading-7 text-white/85">Thoughtful essentials designed to move with you, made for the way you live every day.</p>
-            <a href="#shop" className="mt-9 inline-flex items-center gap-8 bg-white px-7 py-4 text-[10px] font-bold uppercase tracking-[.18em] text-[#24211f] transition hover:bg-[#a65c45] hover:text-white">Explore the collection <ArrowUpRight size={15}/></a>
-          </div>
-        </div>
-        <div className="absolute bottom-7 right-8 hidden items-center gap-3 text-[9px] uppercase tracking-[.2em] text-white md:flex">Scroll to discover <ArrowDown size={14}/></div>
-      </section>
+  return <main>
+    <Header/>
+    <section className="hero-editorial relative min-h-[590px] overflow-hidden md:min-h-[700px]">
+      <div className="absolute inset-0 bg-cover bg-[center_32%]" style={{backgroundImage:"url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=2200&q=90')"}}/>
+      <div className="absolute inset-0 bg-gradient-to-r from-[#211817]/65 via-[#211817]/25 to-transparent"/>
+      <div className="container-shell relative flex min-h-[590px] items-center py-20 md:min-h-[700px]">
+        <div className="max-w-[560px] text-white"><p className="eyebrow mb-6 text-[#f0c9bf]">THE ART OF FEELING GOOD</p><h1 className="display-title text-6xl leading-[.96] md:text-[92px]">Comfort looks<br/>good on <em>you.</em></h1><p className="mt-7 max-w-[370px] text-sm leading-7 text-white/85">Beautifully considered lingerie, sleepwear and active essentials for every version of you.</p><Link href="/shop" className="mt-9 inline-flex items-center gap-8 bg-[#fbf6f1] px-7 py-4 text-[9px] font-bold uppercase tracking-[.2em] text-[#302625] transition hover:bg-[#b56d66] hover:text-white">Explore the collection <ArrowUpRight size={15}/></Link></div>
+      </div>
+      <div className="absolute bottom-8 right-8 hidden text-[9px] uppercase tracking-[.2em] text-white/80 md:block">Discover your everyday · 01 / 05</div>
+    </section>
 
-      <section className="container-shell py-20 md:py-28" id="collections">
-        <div className="mb-10 flex items-end justify-between gap-4"><div><p className="eyebrow mb-3 text-[#a65c45]">A WORLD OF COMFORT</p><h2 className="display-title text-4xl md:text-5xl">Find your everyday.</h2></div><a href="#shop" className="hidden items-center gap-2 text-[10px] font-bold uppercase tracking-widest md:flex">View all <ArrowRight size={14}/></a></div>
-        <div className="grid gap-4 md:grid-cols-3">{categories.map((item, index) => <a href="#shop" key={item.name} className="image-zoom group relative h-[430px] overflow-hidden bg-[#e8e1d8] md:h-[500px]"><img src={item.image} alt="" className="h-full w-full object-cover"/><div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent"/><div className="absolute bottom-7 left-7 text-white"><p className="mb-2 text-[9px] uppercase tracking-[.2em]">{item.detail}</p><h3 className="display-title text-4xl">{item.name}</h3><span className="mt-4 inline-flex items-center gap-3 text-[9px] font-bold uppercase tracking-[.18em]">Discover <ArrowUpRight size={14}/></span></div></a>)}</div>
-      </section>
+    <section className="container-shell py-16 md:py-24">
+      <div className="mb-9 flex items-end justify-between"><div><p className="eyebrow mb-3 text-[#ad6963]">FIND YOUR FEEL-GOOD</p><h2 className="display-title text-4xl md:text-6xl">The collections.</h2></div><Link href="/shop" className="hidden items-center gap-2 text-[9px] font-bold uppercase tracking-widest sm:flex">Shop everything <ArrowRight size={14}/></Link></div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {categories.map((item, i)=><Link key={item.slug} href={`/collections/${item.slug}`} className={`category-tile group relative overflow-hidden bg-[#e9ded7] ${i===0 ? "sm:row-span-2 sm:h-[680px]" : "h-[330px] md:h-[330px]"}`}><img src={item.image} alt={item.title} className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.045]"/><div className="absolute inset-0 bg-gradient-to-t from-[#211817]/65 via-transparent to-transparent"/><div className="absolute bottom-6 left-6 text-white md:bottom-8 md:left-8"><p className="mb-2 text-[9px] uppercase tracking-[.2em] text-white/75">{item.subtitle}</p><h3 className="display-title text-4xl md:text-5xl">{item.title}</h3><span className="mt-4 inline-flex items-center gap-3 text-[9px] font-bold uppercase tracking-[.18em]">Discover <ArrowUpRight size={14}/></span></div></Link>)}
+      </div>
+    </section>
 
-      <section className="bg-[#eeeae3] py-20 md:py-24" id="shop">
-        <div className="container-shell">
-          <div className="mb-10 flex items-end justify-between"><div><p className="eyebrow mb-3 text-[#a65c45]">THE ZORIX SELECTION</p><h2 className="display-title text-4xl md:text-5xl">Considered essentials.</h2></div><a href="#shop" className="hidden items-center gap-2 text-[10px] font-bold uppercase tracking-widest sm:flex">Shop all <ArrowRight size={14}/></a></div>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6">{products.map((product) => <article key={product.name}><a href="#shop" className="image-zoom group relative mb-4 block aspect-[3/4] overflow-hidden bg-[#ddd5ca]"><img src={product.image} alt="" className="h-full w-full object-cover"/><span className="absolute left-3 top-3 bg-[#f7f5f1] px-2 py-1 text-[8px] font-bold tracking-[.14em]">{product.tag}</span><span className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#f7f5f1] opacity-0 transition group-hover:opacity-100"><ArrowUpRight size={17}/></span></a><p className="mb-1 text-[9px] uppercase tracking-[.16em] text-[#8b847c]">{product.type}</p><h3 className="text-sm font-semibold md:text-base">{product.name}</h3><p className="mt-2 text-xs text-[#716b64]">{product.price}</p></article>)}</div>
-          <p className="mt-8 text-[10px] text-[#8b847c]">Preview collection and sample pricing — product catalogue will be connected in the next development stage.</p>
-        </div>
-      </section>
+    <section className="bg-[#f0e9e4] py-16 md:py-24">
+      <div className="container-shell"><div className="mb-10 flex items-end justify-between"><div><p className="eyebrow mb-3 text-[#ad6963]">THE ZORIX SELECTION</p><h2 className="display-title text-4xl md:text-6xl">A little something lovely.</h2></div><Link href="/shop" className="hidden items-center gap-2 text-[9px] font-bold uppercase tracking-widest sm:flex">View all <ArrowRight size={14}/></Link></div>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-4 md:gap-6">{edits.map(p=><article key={p.name}><Link href="/shop" className="image-zoom group relative mb-4 block aspect-[3/4] overflow-hidden bg-[#e5d9d2]"><img src={p.image} alt={p.name} className="h-full w-full object-cover"/><span className="absolute left-3 top-3 bg-[#fbf8f5] px-2 py-1.5 text-[8px] font-bold tracking-[.13em]">{p.label}</span><span className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#fbf8f5] opacity-0 transition group-hover:opacity-100"><ArrowUpRight size={17}/></span></Link><p className="mb-1 text-[9px] uppercase tracking-[.14em] text-[#9b827b]">{p.detail}</p><h3 className="text-xs font-semibold md:text-sm">{p.name}</h3><p className="mt-2 text-xs text-[#76635e]">{p.price}</p></article>)}</div>
+        <p className="mt-8 text-[9px] uppercase tracking-wider text-[#927e77]">Editorial preview · Product names, prices and images are temporary and will be editable from your store dashboard.</p>
+      </div>
+    </section>
 
-      <section className="container-shell grid gap-10 py-20 md:grid-cols-2 md:items-center md:py-28" id="story">
-        <div className="relative h-[440px] overflow-hidden bg-[#e4d9cf]"><img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1200&q=85" alt="ZORIX editorial campaign" className="h-full w-full object-cover"/></div>
-        <div className="max-w-[470px] md:pl-10"><p className="eyebrow mb-4 text-[#a65c45]">MADE FOR REAL LIFE</p><h2 className="display-title text-5xl leading-[1.05] md:text-6xl">Your comfort.<br/><em>Your kind of confidence.</em></h2><p className="mt-6 text-sm leading-7 text-[#716b64]">We believe the best pieces are the ones that feel right. ZORIX is building a thoughtful edit of everyday essentials, with comfort at the centre of everything.</p><a href="#collections" className="mt-8 inline-flex items-center gap-4 border-b border-[#24211f] pb-2 text-[10px] font-bold uppercase tracking-[.18em]">Get to know ZORIX <ArrowRight size={14}/></a></div>
-      </section>
+    <section className="container-shell grid gap-10 py-16 md:grid-cols-2 md:items-center md:gap-20 md:py-24">
+      <div className="relative h-[430px] overflow-hidden bg-[#e8dcd5] md:h-[580px]"><img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1200&q=88" alt="ZORIX everyday editorial" className="h-full w-full object-cover"/></div>
+      <div className="max-w-[490px]"><p className="eyebrow mb-4 text-[#ad6963]">MADE FOR THE WAY YOU FEEL</p><h2 className="display-title text-5xl leading-[1.04] md:text-7xl">Your body.<br/><em>Your comfort.</em><br/>Your rules.</h2><p className="mt-7 text-sm leading-8 text-[#766b66]">From slow mornings to your strongest moves, ZORIX brings together the pieces that make everyday dressing feel effortless. No fuss. Just feel-good essentials.</p><Link href="/about" className="mt-8 inline-flex items-center gap-4 border-b border-[#302625] pb-2 text-[9px] font-bold uppercase tracking-[.18em]">Our story <ArrowRight size={14}/></Link></div>
+    </section>
 
-      <section className="bg-[#292522] px-6 py-16 text-center text-white md:py-20"><p className="eyebrow mb-4 text-[#d6a28e]">STAY IN THE KNOW</p><h2 className="display-title text-4xl md:text-5xl">Good things, occasionally.</h2><p className="mx-auto mt-4 max-w-md text-xs leading-6 text-white/65">Sign up for first looks, new arrivals and a little inspiration for your everyday.</p><form className="mx-auto mt-8 flex max-w-md border-b border-white/40 pb-3"><input type="email" placeholder="Your email address" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-white/50"/><button type="button" className="text-[10px] font-bold uppercase tracking-widest">Join <ArrowRight className="ml-2 inline" size={14}/></button></form></section>
-      <footer className="bg-[#f7f5f1]"><div className="container-shell flex flex-col gap-8 py-10 md:flex-row md:items-center md:justify-between"><a href="#" className="text-2xl font-black tracking-[.2em]">ZORIX<span className="text-[#a65c45]">.</span></a><p className="text-[10px] text-[#8b847c]">Comfort. Confidence. Everyday.</p><div className="flex items-center gap-5 text-[10px] uppercase tracking-widest"><a href="#shop">Shop</a><a href="#story">About</a><a href="mailto:hello@zorix.fit">Contact</a><a href="#" aria-label="Instagram"><Instagram size={16}/></a></div><p className="text-[10px] text-[#8b847c]">© {new Date().getFullYear()} ZORIX. All rights reserved.</p></div></footer>
-    </main>
-  );
+    <section className="bg-[#302625] px-6 py-16 text-center text-white md:py-24"><p className="eyebrow mb-4 text-[#d8a49b]">A LITTLE LOVE IN YOUR INBOX</p><h2 className="display-title text-4xl md:text-6xl">Stay close to comfort.</h2><p className="mx-auto mt-4 max-w-md text-xs leading-7 text-white/65">Be first to know about new collections, special edits and everything happening at ZORIX.</p><form className="mx-auto mt-8 flex max-w-md border-b border-white/40 pb-3"><input type="email" placeholder="Your email address" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-white/50"/><button type="button" className="text-[9px] font-bold uppercase tracking-widest">Sign up <ArrowRight className="ml-2 inline" size={14}/></button></form></section>
+    <Footer/>
+  </main>;
 }
