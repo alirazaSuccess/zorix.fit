@@ -8,7 +8,7 @@ async function proxyRequest(request: NextRequest, context: RouteContext) {
   const base = process.env.COMMERCE_API_URL?.replace(/\/$/, "");
   if (!base) return NextResponse.json({ error: "Admin API is not configured. Add COMMERCE_API_URL to the Vercel project environment variables." }, { status: 503 });
   const { path } = await context.params;
-  const upstreamUrl = new URL(`/v1/${path.map(encodeURIComponent).join("/")}`, base);
+  const upstreamUrl = new URL(`/v1/admin/${path.map(encodeURIComponent).join("/")}`, base);
   request.nextUrl.searchParams.forEach((value, key) => upstreamUrl.searchParams.append(key, value));
   const headers = new Headers();
   const cookie = request.headers.get("cookie");
