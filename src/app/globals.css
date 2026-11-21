@@ -46,3 +46,9 @@ button { cursor: pointer; }
 .admin-table td{font-size:12px;padding:16px 12px;border-bottom:1px solid #f0ebe7}
 @media(max-width:800px){.admin-sidebar{width:72px;padding:24px 10px}.admin-sidebar .admin-brand,.admin-sidebar .admin-nav-label,.admin-sidebar .admin-nav-caption{display:none}.admin-nav-link{justify-content:center;padding:13px 8px}.admin-main{margin-left:72px}}
 @media(max-width:560px){.admin-sidebar{width:58px;padding:18px 6px}.admin-main{margin-left:58px}.admin-card{padding:16px}}
+.admin-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid #e5dbd5;background:#fff;color:#5e4d48;padding:11px 14px;border-radius:9px;font-size:10px;font-weight:700;letter-spacing:.05em}
+.admin-secondary:hover{background:#faf6f3}
+.admin-field{display:grid;gap:8px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#76635e}
+.admin-mini{border:1px solid #e7ddd7;border-radius:7px;background:#fff;padding:7px 9px;font-size:10px;font-weight:700;color:#725a53}
+.admin-mini:hover{background:#f8f1ed}
+.admin-mini.danger{color:#a34d42;border-color:#f0d8d1}
