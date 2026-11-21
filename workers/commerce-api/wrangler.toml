@@ -1,0 +1,17 @@
+name = "zorix-commerce-api"
+main = "src/index.ts"
+compatibility_date = "2026-11-21"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "zorix-commerce"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "migrations"
+
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "zorix-media"
+
+[vars]
+ENVIRONMENT = "development"
