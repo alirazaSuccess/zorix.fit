@@ -198,6 +198,54 @@ async function route(request, env) {
     await env.DB.prepare("INSERT INTO admin_audit_logs (id,admin_id,action,entity_type,entity_id) VALUES (?,?,'status_change','order',?)").bind(crypto.randomUUID(),admin.id,id).run();
     return json({ok:true});
   }
+  if(path==="/v1/admin/users"&&request.method==="GET"){
+    if(admin.role!=="owner")return json({error:"Only the store owner can manage admin users."},403);
+    const r=await env.DB.prepare("SELECT id,email,role,is_active,created_at FROM admins ORDER BY created_at").all();
+    return json({data:r.results});
+  }
+  if(path==="/v1/admin/users"&&request.method==="POST"){
+    if(admin.role!=="owner")return json({error:"Only the store owner can manage admin users."},403);
+    const d=await body(request),email=typeof d.email==="string"?d.email.trim().toLowerCase():"",password=typeof d.password==="string"?d.password:"",role=["admin","editor","fulfillment"].includes(d.role)?d.role:"";
+    if(!validEmail(email)||password.length<12||password.length>128||!role)return json({error:"Enter a valid email, password of at least 12 characters and an allowed role."},400);
+    try{const id=crypto.randomUUID();await env.DB.prepare("INSERT INTO admins (id,email,password_hash,role,is_active) VALUES (?,?,?,?,1)").bind(id,email,await hashPassword(password),role).run();await env.DB.prepare("INSERT INTO admin_audit_logs (id,admin_id,action,entity_type,entity_id) VALUES (?,?,'create','admin',?)").bind(crypto.randomUUID(),admin.id,id).run();return json({ok:true,id},201);}catch{return json({error:"That admin email is already registered."},409);}
+  }
+  const userMatch=path.match(/^\\/v1\\/admin\\/users\\/([^/]+)$/);
+  if(userMatch&&request.method==="PATCH"){
+    if(admin.role!=="owner")return json({error:"Only the store owner can manage admin users."},403);
+    const d=await body(request),target=await env.DB.prepare("SELECT id,role FROM admins WHERE id=?").bind(userMatch[1]).first();
+    if(!target)return json({error:"Admin user not found."},404);
+    if(target.role==="owner")return json({error:"The owner account cannot be changed here."},400);
+    if(target.id===admin.id&&d.isActive===false)return json({error:"You cannot deactivate your own account."},400);
+    const sets=[],values=[];
+    if(["admin","editor","fulfillment"].includes(d.role)){sets.push("role=?");values.push(d.role);}
+    if(typeof d.isActive==="boolean"){sets.push("is_active=?");values.push(d.isActive?1:0);}
+    if(!sets.length)return json({error:"No valid changes supplied."},400);
+    sets.push("updated_at=CURRENT_TIMESTAMP");
+    await env.DB.prepare("UPDATE admins SET "+sets.join(",")+" WHERE id=?").bind(...values,userMatch[1]).run();
+    if(d.isActive===false)await env.DB.prepare("DELETE FROM admin_sessions WHERE admin_id=?").bind(userMatch[1]).run();
+    await env.DB.prepare("INSERT INTO admin_audit_logs (id,admin_id,action,entity_type,entity_id) VALUES (?,?,'update','admin',?)").bind(crypto.randomUUID(),admin.id,userMatch[1]).run();
+    return json({ok:true});
+  }
+  if(path==="/v1/admin/sessions"&&request.method==="GET"){
+    const sql=admin.role==="owner"?"SELECT s.id,s.admin_id,a.email,a.role,s.created_at,s.expires_at FROM admin_sessions s JOIN admins a ON a.id=s.admin_id WHERE s.expires_at>datetime('now') ORDER BY s.created_at DESC":"SELECT s.id,s.admin_id,a.email,a.role,s.created_at,s.expires_at FROM admin_sessions s JOIN admins a ON a.id=s.admin_id WHERE s.admin_id=? AND s.expires_at>datetime('now') ORDER BY s.created_at DESC";
+    const r=admin.role==="owner"?await env.DB.prepare(sql).all():await env.DB.prepare(sql).bind(admin.id).all();
+    return json({data:r.results});
+  }
+  const sessionMatch=path.match(/^\\/v1\\/admin\\/sessions\\/([^/]+)$/);
+  if(sessionMatch&&request.method==="DELETE"){
+    const r=admin.role==="owner"?await env.DB.prepare("DELETE FROM admin_sessions WHERE id=?").bind(sessionMatch[1]).run():await env.DB.prepare("DELETE FROM admin_sessions WHERE id=? AND admin_id=?").bind(sessionMatch[1],admin.id).run();
+    return r.meta.changes?json({ok:true}):json({error:"Session not found or not permitted."},404);
+  }
+  if(path==="/v1/admin/password"&&request.method==="POST"){
+    const d=await body(request),row=await env.DB.prepare("SELECT password_hash FROM admins WHERE id=?").bind(admin.id).first();
+    if(typeof d.currentPassword!=="string"||!(await verifyPassword(d.currentPassword,row?.password_hash)))return json({error:"Current password is incorrect."},401);
+    if(typeof d.newPassword!=="string"||d.newPassword.length<12||d.newPassword.length>128)return json({error:"New password must be 12–128 characters."},400);
+    const token=cookie(request),tokenHash=token?b64(await digest(token)):"";
+    await env.DB.prepare("UPDATE admins SET password_hash=?,updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(await hashPassword(d.newPassword),admin.id).run();
+    await env.DB.prepare("DELETE FROM admin_sessions WHERE admin_id=? AND token_hash<>?").bind(admin.id,tokenHash).run();
+    await env.DB.prepare("INSERT INTO admin_audit_logs (id,admin_id,action,entity_type,entity_id) VALUES (?,?,'password_change','admin',?)").bind(crypto.randomUUID(),admin.id,admin.id).run();
+    return json({ok:true,message:"Password updated. Other sessions were signed out."});
+  }
   if(path==="/v1/admin/analytics"&&request.method==="GET"){
     const days=Math.min(365,Math.max(1,Number(url.searchParams.get("days")||30)));
     const events=await env.DB.prepare("SELECT event_name,COUNT(*) AS total FROM analytics_events WHERE created_at>=datetime('now',?) GROUP BY event_name ORDER BY event_name").bind("-"+days+" days").all();
