@@ -18,6 +18,12 @@ const edits = [
   { name: "Move With You Set", detail: "Activewear · Sport collection", price: "Rs. 2,990", label: "NEW SEASON", image: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=850&q=88" }
 ];
 
+async function getLiveCollections(){
+ const base=process.env.COMMERCE_API_URL?.replace(/\/$/,"");
+ if(!base)return [];
+ try{const r=await fetch(base+"/v1/collections",{cache:"no-store"});if(!r.ok)return [];const j=await r.json();return j.data||[];}catch{return [];}
+}
+
 async function getHomepageSections(){
  const base=process.env.COMMERCE_API_URL?.replace(/\/$/,"");
  if(!base)return [];
@@ -25,7 +31,8 @@ async function getHomepageSections(){
 }
 
 export default async function HomePage() {
-  const cmsSections=await getHomepageSections();
+  const [cmsSections,liveCollections]=await Promise.all([getHomepageSections(),getLiveCollections()]);
+  const displayCategories=liveCollections.length?liveCollections.map((item:any,i:number)=>({title:item.title,subtitle:item.description||"Explore the collection.",slug:item.slug,image:item.image_key?.startsWith("https://")?item.image_key:categories[i%categories.length].image,tone:"warm"})):categories;
   const heroSection=cmsSections.find((section:any)=>section.section_type==="hero");
   const bannerSections=cmsSections.filter((section:any)=>section.section_type==="banner");
   const heroImage=heroSection?.settings?.image_url||"https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=2200&q=90";
@@ -45,7 +52,7 @@ export default async function HomePage() {
     <section className="container-shell py-16 md:py-24">
       <div className="mb-9 flex items-end justify-between"><div><p className="eyebrow mb-3 text-[#ad6963]">FIND YOUR FEEL-GOOD</p><h2 className="display-title text-4xl md:text-6xl">The collections.</h2></div><Link href="/shop" className="hidden items-center gap-2 text-[9px] font-bold uppercase tracking-widest sm:flex">Shop everything <ArrowRight size={14}/></Link></div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {categories.map((item, i)=><Link key={item.slug} href={`/collections/${item.slug}`} className={`category-tile group relative overflow-hidden bg-[#e9ded7] ${i===0 ? "sm:row-span-2 sm:h-[680px]" : "h-[330px] md:h-[330px]"}`}><img src={item.image} alt={item.title} className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.045]"/><div className="absolute inset-0 bg-gradient-to-t from-[#211817]/65 via-transparent to-transparent"/><div className="absolute bottom-6 left-6 text-white md:bottom-8 md:left-8"><p className="mb-2 text-[9px] uppercase tracking-[.2em] text-white/75">{item.subtitle}</p><h3 className="display-title text-4xl md:text-5xl">{item.title}</h3><span className="mt-4 inline-flex items-center gap-3 text-[9px] font-bold uppercase tracking-[.18em]">Discover <ArrowUpRight size={14}/></span></div></Link>)}
+        {displayCategories.map((item:any, i:number)=><Link key={item.slug} href={`/collections/${item.slug}`} className={`category-tile group relative overflow-hidden bg-[#e9ded7] ${i===0 ? "sm:row-span-2 sm:h-[680px]" : "h-[330px] md:h-[330px]"}`}><img src={item.image} alt={item.title} className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.045]"/><div className="absolute inset-0 bg-gradient-to-t from-[#211817]/65 via-transparent to-transparent"/><div className="absolute bottom-6 left-6 text-white md:bottom-8 md:left-8"><p className="mb-2 text-[9px] uppercase tracking-[.2em] text-white/75">{item.subtitle}</p><h3 className="display-title text-4xl md:text-5xl">{item.title}</h3><span className="mt-4 inline-flex items-center gap-3 text-[9px] font-bold uppercase tracking-[.18em]">Discover <ArrowUpRight size={14}/></span></div></Link>)}
       </div>
     </section>
 
