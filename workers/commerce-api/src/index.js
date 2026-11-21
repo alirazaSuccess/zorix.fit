@@ -52,10 +52,8 @@ async function route(request, env) {
     return json({ setupRequired: (count?.total || 0) === 0 && Boolean(env.ADMIN_SETUP_TOKEN) });
   }
   const publicAdminPaths = new Set(["/v1/admin/setup-status", "/v1/admin/setup", "/v1/admin/login", "/v1/admin/logout"]);
-  if (path.startsWith("/v1/admin/") && !publicAdminPaths.has(path)) {
-    const sessionAdmin = await adminFor(request, env);
-    if (!sessionAdmin) return json({ error: "Unauthorised" }, 401);
-  }
+  const admin = path.startsWith("/v1/admin/") && !publicAdminPaths.has(path) ? await adminFor(request, env) : null;
+  if (path.startsWith("/v1/admin/") && !publicAdminPaths.has(path) && !admin) return json({ error: "Unauthorised" }, 401);
   if (path === "/v1/admin/setup" && request.method === "POST") {
     try {
     if (!env.ADMIN_SETUP_TOKEN) return json({ error: "Admin setup is not configured on the server." }, 503);
@@ -214,7 +212,7 @@ async function route(request, env) {
     const data=await body(request);
     if(typeof data.id!=="string")return json({error:"Section id required."},400);
     const sets=[],values=[];
-    for(const key of ["title","subtitle","body","settingsJson","isVisible","sortOrder"]){if(Object.prototype.hasOwnProperty.call(data,key)){sets.push(({settingsJson:"settings_json",isVisible:"is_visible",sortOrder:"sort_order"})[key]||key+"=?");values.push(key==="isVisible"?(data[key]?1:0):key==="settingsJson"?JSON.stringify(data[key]):data[key]);}}
+    for(const key of ["title","subtitle","body","settingsJson","isVisible","sortOrder"]){if(Object.prototype.hasOwnProperty.call(data,key)){sets.push((({settingsJson:"settings_json",isVisible:"is_visible",sortOrder:"sort_order"})[key]||key)+"=?");values.push(key==="isVisible"?(data[key]?1:0):key==="settingsJson"?JSON.stringify(data[key]):data[key]);}}
     if(!sets.length)return json({error:"No section fields supplied."},400);
     sets.push("updated_at=CURRENT_TIMESTAMP");
     await env.DB.prepare("UPDATE homepage_sections SET "+sets.join(",")+" WHERE id=?").bind(...values,data.id).run();
