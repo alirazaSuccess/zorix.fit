@@ -267,9 +267,36 @@ async function route(request, env) {
     return json({ok:true});
   }
   if(path==="/v1/admin/media"&&request.method==="GET"){
-    const result=await env.DB.prepare("SELECT id,storage_key,file_name,content_type,size_bytes,alt_text,created_at FROM media_assets ORDER BY created_at DESC LIMIT 200").all();
+    const result=await env.DB.prepare("SELECT id,storage_key,delivery_url,file_name,content_type,size_bytes,alt_text,created_at FROM media_assets ORDER BY created_at DESC LIMIT 300").all();
     return json({data:result.results,cloudinaryConfigured:Boolean(env.CLOUDINARY_CLOUD_NAME&&env.CLOUDINARY_API_KEY&&env.CLOUDINARY_API_SECRET)});
   }
+  if(path==="/v1/admin/media"&&request.method==="POST"){
+    const d=await body(request),publicId=typeof d.publicId==="string"?d.publicId.trim():"",urlValue=typeof d.url==="string"?d.url.trim():"",fileName=typeof d.fileName==="string"?d.fileName.slice(0,255):"upload",contentType=typeof d.contentType==="string"?d.contentType:"image/jpeg",size=Number(d.sizeBytes);
+    if(!/^zorix\\/(products|collections|site)\\/[A-Za-z0-9_/-]+$/.test(publicId)||!urlValue.startsWith("https://res.cloudinary.com/")||!contentType.startsWith("image/")||!Number.isSafeInteger(size)||size<1||size>10485760)return json({error:"Invalid upload metadata. Use an image up to 10 MB in a ZORIX folder."},400);
+    const id=crypto.randomUUID();
+    try{await env.DB.prepare("INSERT INTO media_assets (id,storage_key,delivery_url,file_name,content_type,size_bytes,alt_text) VALUES (?,?,?,?,?,?,?)").bind(id,publicId,urlValue,fileName,contentType,size,typeof d.altText==="string"?d.altText.slice(0,500):"").run();return json({ok:true,id},201);}catch{return json({error:"This Cloudinary asset is already registered."},409);}
+  }
+  const mediaMatch=path.match(/^\\/v1\\/admin\\/media\\/([^/]+)$/);
+  if(mediaMatch&&request.method==="DELETE"){
+    const asset=await env.DB.prepare("SELECT storage_key FROM media_assets WHERE id=?").bind(mediaMatch[1]).first();
+    if(!asset)return json({error:"Media asset not found."},404);
+    if(!env.CLOUDINARY_API_KEY||!env.CLOUDINARY_API_SECRET||!env.CLOUDINARY_CLOUD_NAME)return json({error:"Cloudinary is not configured on the Worker."},503);
+    const timestamp=Math.floor(Date.now()/1000),payload="public_id="+asset.storage_key+"&timestamp="+timestamp;
+    const key=await crypto.subtle.importKey("raw",enc.encode(env.CLOUDINARY_API_SECRET),{name:"HMAC",hash:"SHA-1"},false,["sign"]);
+    const sig=new Uint8Array(await crypto.subtle.sign("HMAC",key,enc.encode(payload)));
+    const signature=Array.from(sig).map(x=>x.toString(16).padStart(2,"0")).join("");
+    const form=new URLSearchParams({public_id:asset.storage_key,timestamp:String(timestamp),api_key:env.CLOUDINARY_API_KEY,signature});
+    const response=await fetch("https://api.cloudinary.com/v1_1/"+env.CLOUDINARY_CLOUD_NAME+"/image/destroy",{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded"},body:form});
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok||result.result!=="ok"&&result.result!=="not found")return json({error:"Cloudinary could not delete this image."},502);
+    await env.DB.prepare("DELETE FROM media_assets WHERE id=?").bind(mediaMatch[1]).run();
+    return json({ok:true});
+  }
+  const imageMatch=path.match(/^\\/v1\\/admin\\/products\\/([^/]+)\\/images$/);
+  if(imageMatch&&request.method==="GET"){const r=await env.DB.prepare("SELECT id,storage_key,delivery_url,alt_text,sort_order FROM product_images WHERE product_id=? ORDER BY sort_order").bind(imageMatch[1]).all();return json({data:r.results});}
+  if(imageMatch&&request.method==="POST"){const d=await body(request);if(typeof d.storageKey!=="string"||typeof d.deliveryUrl!=="string"||!d.deliveryUrl.startsWith("https://res.cloudinary.com/"))return json({error:"Choose a valid uploaded image."},400);const id=crypto.randomUUID();await env.DB.prepare("INSERT INTO product_images (id,product_id,storage_key,delivery_url,alt_text,sort_order) VALUES (?,?,?,?,?,?)").bind(id,imageMatch[1],d.storageKey,d.deliveryUrl,String(d.altText||"").slice(0,500),Math.max(0,Number(d.sortOrder)||0)).run();return json({ok:true,id},201);}
+  const imageIdMatch=path.match(/^\\/v1\\/admin\\/product-images\\/([^/]+)$/);
+  if(imageIdMatch&&request.method==="DELETE"){const r=await env.DB.prepare("DELETE FROM product_images WHERE id=?").bind(imageIdMatch[1]).run();return r.meta.changes?json({ok:true}):json({error:"Product image not found."},404);}
   if(path==="/v1/admin/settings"&&request.method==="GET"){
     const result=await env.DB.prepare("SELECT key,value FROM store_settings ORDER BY key").all().catch(()=>({results:[]}));
     return json({data:Object.fromEntries(result.results.map(row=>[row.key,row.value]))});
