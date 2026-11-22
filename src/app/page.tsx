@@ -45,7 +45,7 @@ export default async function HomePage() {
   const featuredSection=cmsSections.find((section:any)=>section.section_type==="featured_products");
   const editorialSection=cmsSections.find((section:any)=>section.section_type==="editorial");
   const newsletterSection=cmsSections.find((section:any)=>section.section_type==="newsletter");
-  const visibleSections=cmsSections.filter((section:any)=>section.is_visible).sort((a:any,b:any)=>Number(a.sort_order)-Number(b.sort_order);
+  const visibleSections=cmsSections.filter((section:any)=>section.is_visible).sort((a:any,b:any)=>Number(a.sort_order)-Number(b.sort_order));
   const bannerSections=cmsSections.filter((section:any)=>section.section_type==="banner"&&section.is_visible);
   const heroImage=heroSection?.settings?.image_url||"https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=2200&q=90";
   return <main>
