@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BarChart3, Boxes, ClipboardList, FolderOpen, Image, LayoutDashboard, LogOut, Settings, ShoppingBag, Store, Users } from "lucide-react";
+import { BarChart3, Boxes, ClipboardList, FolderOpen, Image, LayoutDashboard, LogOut, Settings, ShoppingBag, Store, Users, Mail, MapPinned, PanelsTopLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const nav = [
@@ -11,8 +11,11 @@ const nav = [
   { href: "/admin/collections", label: "Collections", icon: Boxes },
   { href: "/admin/media", label: "Media library", icon: Image },
   { href: "/admin/content", label: "Website content", icon: Store },
+  { href: "/admin/themes", label: "Customize website", icon: PanelsTopLeft },
   { href: "/admin/orders", label: "Orders", icon: ClipboardList },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/admin/visitors", label: "Visitors & locations", icon: MapPinned },
+  { href: "/admin/newsletter", label: "Newsletter subscribers", icon: Mail },
   { href: "/admin/settings", label: "Settings", icon: Settings },
   { href: "/admin/users", label: "Admin users", icon: Users }
 ];
