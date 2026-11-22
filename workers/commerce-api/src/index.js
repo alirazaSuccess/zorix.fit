@@ -51,6 +51,14 @@ async function route(request, env) {
     const count = await env.DB.prepare("SELECT COUNT(*) AS total FROM admins").first();
     return json({ setupRequired: (count?.total || 0) === 0 && Boolean(env.ADMIN_SETUP_TOKEN) });
   }
+  if(path==="/v1/storefront/navigation"&&request.method==="GET"){
+    const [settings,collections,pages]=await Promise.all([
+      env.DB.prepare("SELECT key,value FROM store_settings WHERE key IN ('header_announcement','header_logo','header_links_json','header_show_search','header_show_account','header_show_cart','header_shop_label','header_pages_label','header_collections_label','header_home_link')").all().catch(()=>({results:[]})),
+      env.DB.prepare("SELECT title,slug,description FROM collections WHERE is_active=1 ORDER BY sort_order,title").all(),
+      env.DB.prepare("SELECT title,slug FROM content_pages WHERE status='published' ORDER BY title").all()
+    ]);
+    return json({settings:Object.fromEntries(settings.results.map(x=>[x.key,x.value])),collections:collections.results,pages:pages.results});
+  }
   const publicAdminPaths = new Set(["/v1/admin/setup-status", "/v1/admin/setup", "/v1/admin/login", "/v1/admin/logout"]);
   const admin = path.startsWith("/v1/admin/") && !publicAdminPaths.has(path) ? await adminFor(request, env) : null;
   if (path.startsWith("/v1/admin/") && !publicAdminPaths.has(path) && !admin) return json({ error: "Unauthorised" }, 401);
