@@ -83,7 +83,6 @@ export default async function HomePage() {
 
     {(!newsletterSection||newsletterSection.is_visible)&&<section style={{order:Number(newsletterSection?.sort_order??5)}} className="bg-[#302625] px-6 py-16 text-center text-white md:py-24"><p className="eyebrow mb-4 text-[#d8a49b]">{newsletterSection?.subtitle||"A LITTLE LOVE IN YOUR INBOX"}</p><h2 className="display-title text-4xl md:text-6xl">{newsletterSection?.title||"Stay close to comfort."}</h2><p className="mx-auto mt-4 max-w-md text-xs leading-7 text-white/65">{newsletterSection?.body||"Be first to know about new collections, special edits and everything happening at ZORIX."}</p><form className="mx-auto mt-8 flex max-w-md border-b border-white/40 pb-3"><input type="email" placeholder="Your email address" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-white/50"/><button type="button" className="text-[9px] font-bold uppercase tracking-widest">Sign up <ArrowRight className="ml-2 inline" size={14}/></button></form></section>}
     </div>
-    </div>
     <SiteFooter/>
   </main>;
 }
