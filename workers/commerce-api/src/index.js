@@ -272,6 +272,24 @@ async function route(request, env) {
     await env.DB.prepare("INSERT INTO admin_audit_logs (id,admin_id,action,entity_type,entity_id) VALUES (?,?,'password_change','admin',?)").bind(crypto.randomUUID(),admin.id,admin.id).run();
     return json({ok:true,message:"Password updated. Other sessions were signed out."});
   }
+  if(path==="/v1/admin/newsletter"&&request.method==="GET"){
+    const q=String(url.searchParams.get("q")||"").slice(0,100),status=url.searchParams.get("status");
+    const where=[],binds=[];if(q){where.push("email LIKE ?");binds.push("%"+q+"%");}if(status==="active"||status==="unsubscribed"){where.push("status=?");binds.push(status);}
+    const rows=await env.DB.prepare("SELECT id,email,status,source,consent_at,unsubscribed_at,created_at FROM newsletter_subscribers "+(where.length?"WHERE "+where.join(" AND "):"")+" ORDER BY created_at DESC LIMIT 500").bind(...binds).all();
+    const counts=await env.DB.prepare("SELECT COUNT(*) AS total,SUM(CASE WHEN status='active' THEN 1 ELSE 0 END) AS active FROM newsletter_subscribers").first();
+    return json({data:rows.results,total:Number(counts?.total||0),active:Number(counts?.active||0)});
+  }
+  if(path==="/v1/admin/newsletter"&&request.method==="PATCH"){
+    const d=await body(request);if(typeof d.id!=="string"||!["active","unsubscribed"].includes(d.status))return json({error:"Subscriber id and valid status required."},400);
+    await env.DB.prepare("UPDATE newsletter_subscribers SET status=?,unsubscribed_at=CASE WHEN ?='unsubscribed' THEN CURRENT_TIMESTAMP ELSE NULL END WHERE id=?").bind(d.status,d.status,d.id).run();return json({ok:true});
+  }
+  if(path==="/v1/admin/analytics/visitors"&&request.method==="GET"){
+    const days=Math.min(365,Math.max(1,Number(url.searchParams.get("days")||30)));
+    const totals=await env.DB.prepare("SELECT COUNT(DISTINCT anonymous_id) AS visitors,COUNT(DISTINCT session_id) AS sessions,COUNT(*) AS page_views FROM analytics_events WHERE created_at>=datetime('now',?) AND event_name='page_view'").bind("-"+days+" days").first();
+    const countries=await env.DB.prepare("SELECT country_code,COUNT(DISTINCT anonymous_id) AS visitors FROM analytics_events WHERE created_at>=datetime('now',?) AND event_name='page_view' AND country_code IS NOT NULL GROUP BY country_code ORDER BY visitors DESC LIMIT 20").bind("-"+days+" days").all();
+    const cities=await env.DB.prepare("SELECT city,region,country_code,COUNT(DISTINCT anonymous_id) AS visitors FROM analytics_events WHERE created_at>=datetime('now',?) AND event_name='page_view' AND city IS NOT NULL GROUP BY city,region,country_code ORDER BY visitors DESC LIMIT 30").bind("-"+days+" days").all();
+    return json({days,visitors:Number(totals?.visitors||0),sessions:Number(totals?.sessions||0),pageViews:Number(totals?.page_views||0),countries:countries.results,cities:cities.results});
+  }
   if(path==="/v1/admin/analytics"&&request.method==="GET"){
     const days=Math.min(365,Math.max(1,Number(url.searchParams.get("days")||30))),from=url.searchParams.get("from"),to=url.searchParams.get("to");
     const validDate=v=>typeof v==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(v);
@@ -282,11 +300,19 @@ async function route(request, env) {
     const funnel=["page_view","product_view","add_to_cart","checkout_start","completed_order"].map(name=>({event:name,total:counts[name]||0}));
     return json({days,from:useRange?from:null,to:useRange?to:null,events:events.results,funnel,orders:orders?.total||0,revenuePaisa:orders?.revenue||0,conversionRate:counts.page_view?Number(((counts.completed_order||0)/counts.page_view*100).toFixed(2)):0});
   }
+  if(path==="/v1/newsletter/subscribe"&&request.method==="POST"){
+    const d=await body(request),email=String(d.email||"").trim().toLowerCase(),source=String(d.source||"footer").slice(0,40);
+    if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)||email.length>254)return json({error:"Enter a valid email address."},400);
+    const id=crypto.randomUUID();
+    try{await env.DB.prepare("INSERT INTO newsletter_subscribers (id,email,source) VALUES (?,?,?)").bind(id,email,source).run();return json({ok:true,message:"You are subscribed."},201);}
+    catch{const existing=await env.DB.prepare("SELECT id,status FROM newsletter_subscribers WHERE email=?").bind(email).first();if(existing?.status==="active")return json({ok:true,message:"This email is already subscribed."});if(existing){await env.DB.prepare("UPDATE newsletter_subscribers SET status='active',source=?,consent_at=CURRENT_TIMESTAMP,unsubscribed_at=NULL WHERE id=?").bind(source,existing.id).run();return json({ok:true,message:"Subscription reactivated."});}return json({error:"Unable to save subscription."},500);}
+  }
   if(path==="/v1/analytics/events"&&request.method==="POST"){
     const d=await body(request),allowed=["page_view","product_view","add_to_cart","checkout_start","completed_order"];
     if(!allowed.includes(d.eventName)||typeof d.path!=="string")return json({error:"Invalid analytics event."},400);
     const anonymous=typeof d.anonymousId==="string"?d.anonymousId.slice(0,64):null,session=typeof d.sessionId==="string"?d.sessionId.slice(0,64):null;
-    await env.DB.prepare("INSERT INTO analytics_events (id,event_name,anonymous_id,session_id,path,product_id,metadata_json) VALUES (?,?,?,?,?,?,?)").bind(crypto.randomUUID(),d.eventName,anonymous,session,d.path.slice(0,500),typeof d.productId==="string"?d.productId:null,JSON.stringify(d.metadata&&typeof d.metadata==="object"?d.metadata:{}).slice(0,2000)).run();
+    const cf=request.cf||{},country=typeof cf.country==="string"?cf.country.slice(0,2):null,city=typeof cf.city==="string"?cf.city.slice(0,100):null,region=typeof cf.region==="string"?cf.region.slice(0,100):null;
+    await env.DB.prepare("INSERT INTO analytics_events (id,event_name,anonymous_id,session_id,path,product_id,metadata_json,country_code,city,region) VALUES (?,?,?,?,?,?,?,?,?,?)").bind(crypto.randomUUID(),d.eventName,anonymous,session,d.path.slice(0,500),typeof d.productId==="string"?d.productId:null,JSON.stringify(d.metadata&&typeof d.metadata==="object"?d.metadata:{}).slice(0,2000),country,city,region).run();
     return json({ok:true},201);
   }
   if(path==="/v1/admin/content"&&request.method==="GET"){
