@@ -2,22 +2,15 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BarChart3, Boxes, ClipboardList, FolderOpen, Image, LayoutDashboard, LogOut, Settings, ShoppingBag, Store, Users, Mail, MapPinned, PanelsTopLeft } from "lucide-react";
+import { Boxes, LayoutDashboard, LogOut, ShoppingBag, Store, Mail, MapPinned } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const nav = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
   { href: "/admin/products", label: "Products", icon: ShoppingBag },
   { href: "/admin/collections", label: "Collections", icon: Boxes },
-  { href: "/admin/media", label: "Media library", icon: Image },
-  { href: "/admin/content", label: "Website content", icon: Store },
-  { href: "/admin/themes", label: "Customize website", icon: PanelsTopLeft },
-  { href: "/admin/orders", label: "Orders", icon: ClipboardList },
-  { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/admin/visitors", label: "Visitors & locations", icon: MapPinned },
-  { href: "/admin/newsletter", label: "Newsletter subscribers", icon: Mail },
-  { href: "/admin/settings", label: "Settings", icon: Settings },
-  { href: "/admin/users", label: "Admin users", icon: Users }
+  { href: "/admin/visitors", label: "Visitors", icon: MapPinned },
+  { href: "/admin/newsletter", label: "Newsletter subscribers", icon: Mail }
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -27,6 +20,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [authChecked, setAuthChecked] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
   const isPublicAuthPage = pathname === "/admin/login" || pathname === "/admin/setup";
+  const allowedAdminPaths = ["/admin", "/admin/products", "/admin/collections", "/admin/visitors", "/admin/newsletter"];
+  useEffect(() => { if (!isPublicAuthPage && !allowedAdminPaths.includes(pathname)) router.replace("/admin"); }, [pathname, router, isPublicAuthPage]);
   useEffect(() => {
     if (isPublicAuthPage) { setAuthChecked(true); return; }
     let active = true;
