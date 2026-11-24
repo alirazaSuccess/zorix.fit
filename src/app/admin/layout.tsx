@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Boxes, LayoutDashboard, LogOut, ShoppingBag, Store, Mail, MapPinned } from "lucide-react";
+import { Boxes, LayoutDashboard, LogOut, ShoppingBag, Store, Mail, MapPinned, ClipboardList } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const nav = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
   { href: "/admin/products", label: "Products", icon: ShoppingBag },
+  { href: "/admin/orders", label: "Orders", icon: ClipboardList },
   { href: "/admin/collections", label: "Collections", icon: Boxes },
   { href: "/admin/visitors", label: "Visitors", icon: MapPinned },
   { href: "/admin/newsletter", label: "Newsletter subscribers", icon: Mail }
@@ -20,7 +21,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [authChecked, setAuthChecked] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
   const isPublicAuthPage = pathname === "/admin/login" || pathname === "/admin/setup";
-  const allowedAdminPaths = ["/admin", "/admin/products", "/admin/collections", "/admin/visitors", "/admin/newsletter"];
+  const allowedAdminPaths = ["/admin", "/admin/products", "/admin/orders", "/admin/collections", "/admin/visitors", "/admin/newsletter"];
   useEffect(() => { if (!isPublicAuthPage && !allowedAdminPaths.includes(pathname)) router.replace("/admin"); }, [pathname, router, isPublicAuthPage]);
   useEffect(() => {
     if (isPublicAuthPage) { setAuthChecked(true); return; }
