@@ -27,7 +27,7 @@ async function getLiveCollections(){
 async function getLiveProducts(){
  const base=process.env.COMMERCE_API_URL?.replace(/\/$/,"");
  if(!base)return [];
- try{const r=await fetch(base+"/v1/products?limit=8",{cache:"no-store"});if(!r.ok)return [];const j=await r.json();return j.data||[];}catch{return [];}
+ try{const r=await fetch(base+"/v1/collections/cotton-bras",{cache:"no-store"});if(!r.ok)return [];const j=await r.json();return j.products||[];}catch{return [];}
 }
 
 async function getHomepageSections(){
