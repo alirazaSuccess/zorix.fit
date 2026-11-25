@@ -161,9 +161,10 @@ async function route(request, env) {
     } catch { return json({error:"Could not update product. Check unique slug and SKU."},400); }
   }
   if (productMatch && request.method === "DELETE") {
-    const result=await env.DB.prepare("UPDATE products SET status='archived',updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(productMatch[1]).run();
-    if (!result.meta.changes) return json({error:"Product not found."},404);
-    await env.DB.prepare("INSERT INTO admin_audit_logs (id,admin_id,action,entity_type,entity_id) VALUES (?,?,'archive','product',?)").bind(crypto.randomUUID(),admin.id,productMatch[1]).run();
+    const existing=await env.DB.prepare("SELECT id,title FROM products WHERE id=?").bind(productMatch[1]).first();
+    if(!existing)return json({error:"Product not found."},404);
+    await env.DB.prepare("DELETE FROM products WHERE id=?").bind(productMatch[1]).run();
+    await env.DB.prepare("INSERT INTO admin_audit_logs (id,admin_id,action,entity_type,entity_id,details_json) VALUES (?,?,'delete','product',?,?)").bind(crypto.randomUUID(),admin.id,productMatch[1],JSON.stringify({title:existing.title})).run();
     return json({ok:true});
   }
   if (path === "/v1/admin/collections" && request.method === "GET") {
@@ -191,7 +192,7 @@ async function route(request, env) {
     sets.push("updated_at=CURRENT_TIMESTAMP");
     try{const r=await env.DB.prepare("UPDATE collections SET "+sets.join(",")+" WHERE id=?").bind(...values,id).run();if(!r.meta.changes)return json({error:"Collection not found."},404);return json({ok:true});}catch{return json({error:"Could not update collection."},400);}
   }
-  if(collectionMatch&&request.method==="DELETE"){const r=await env.DB.prepare("UPDATE collections SET is_active=0,updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(collectionMatch[1]).run();return r.meta.changes?json({ok:true}):json({error:"Collection not found."},404);}
+  if(collectionMatch&&request.method==="DELETE"){const existing=await env.DB.prepare("SELECT id,title FROM collections WHERE id=?").bind(collectionMatch[1]).first();if(!existing)return json({error:"Collection not found."},404);await env.DB.prepare("DELETE FROM collections WHERE id=?").bind(collectionMatch[1]).run();await env.DB.prepare("INSERT INTO admin_audit_logs (id,admin_id,action,entity_type,entity_id,details_json) VALUES (?,?,'delete','collection',?,?)").bind(crypto.randomUUID(),admin.id,collectionMatch[1],JSON.stringify({title:existing.title})).run();return json({ok:true});}
   if(path==="/v1/admin/orders"&&request.method==="GET"){
     const status=url.searchParams.get("status"), q=url.searchParams.get("q");
     let sql="SELECT id,order_number,customer_name,customer_phone,status,payment_status,total_paisa,created_at FROM orders",where=[],values=[];
